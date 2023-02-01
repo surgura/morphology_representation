@@ -1,0 +1,3 @@
+[submodule "revolve2"]
+	path = revolve2
+	url = git@github.com:surgura/revolve2.git
