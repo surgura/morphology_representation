@@ -1,8 +1,9 @@
-from robot_rgt import body_to_tree, Tree, make_body_rgt
+from robot_rgt import body_to_tree, Tree, make_body_rgt, tree_to_body
 from revolve2.standard_resources import modular_robots
 from pyvis.network import Network
-from rtgae import tree_grammar, recursive_tree_grammar_auto_encoder as rtgae_model
+from rtgae import recursive_tree_grammar_auto_encoder as rtgae_model
 import torch
+from simulator import simulate
 
 
 def visualize_tree(tree: Tree) -> None:
@@ -32,19 +33,29 @@ grammar = make_body_rgt()
 training_data = [body_to_tree(body) for body in modular_robots.all()]
 
 model = rtgae_model.TreeGrammarAutoEncoder(grammar, dim=100, dim_vae=8)
-optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=0.0)
+# optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=0.0)
 
 
-import random
+# import random
 
-for epoch in range(30000):
-    optimizer.zero_grad()
-    # sample a random tree from the training data
-    i = random.randrange(len(training_data))
-    nodes, adj = training_data[i]
-    # compute the loss on it
-    loss = model.compute_loss(nodes, adj, beta=0.01, sigma_scaling=0.1)
-    # compute the gradient
-    loss.backward()
-    # perform an optimizer step
-    optimizer.step()
+# for epoch in range(1000):
+#     optimizer.zero_grad()
+#     # sample a random tree from the training data
+#     i = random.randrange(len(training_data))
+#     nodes, adj = training_data[i]
+#     # compute the loss on it
+#     loss = model.compute_loss(nodes, adj, beta=0.01, sigma_scaling=0.1)
+#     print(loss)
+#     # compute the gradient
+#     loss.backward()
+#     # perform an optimizer step
+#     optimizer.step()
+
+# torch.save(model.state_dict(), "model.state")
+model.load_state_dict(torch.load("model.state"))
+
+h = torch.tensor([0.5] * 8) + 0.05 * torch.randn(8)
+nodes, adj, _ = model.decode(h, max_size=32)
+body = tree_to_body(Tree(nodes, adj))
+
+simulate(body)

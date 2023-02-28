@@ -1,28 +1,19 @@
 from rtgae import tree_grammar
 from revolve2.core.modular_robot import Body, Brick, ActiveHinge, Module, Core
 from typing import List, NamedTuple
+import numpy as np
 
 
 def make_body_rgt() -> tree_grammar.TreeGrammar:
-    alphabet = {
-        "empty": 0,
-        "core_children": 4,
-        "brick_children": 3,
-        "active_hinge_children": 1,
-        "brick": 1,
-        "active_hinge": 1,
-        "core": 0,
-    }
-    nonterminals = ["core", "brick", "active_hinge", "child"]
-    start = "core"
+    alphabet = {"core": 4, "brick": 3, "active_hinge": 1, "empty": 0}
+    nonterminals = ["start", "child"]
+    start = "start"
     rules = {
-        "core": [("core_children", ["child", "child", "child", "child"])],
-        "brick": [("brick_children", ["child", "child", "child"])],
-        "active_hinge": [("active_hinge_children", ["child"])],
+        "start": [("core", ["child", "child", "child", "child"])],
         "child": [
+            ("brick", ["child", "child", "child"]),
+            ("active_hinge", ["child"]),
             ("empty", []),
-            ("brick", ["brick"]),
-            ("active_hinge", ["active_hinge"]),
         ],
     }
     grammar = tree_grammar.TreeGrammar(alphabet, nonterminals, start, rules)
@@ -35,44 +26,16 @@ class Tree(NamedTuple):
     adj: List[List[int]]
 
 
-# def __module_to_tree(module: Module, tree: Tree) -> None:
-#     if isinstance(module, Core):
-#         tree.nodes.append("core")
-#         tree.nodes.append("core_children")
-#     elif isinstance(module, Brick):
-#         tree.nodes.append("brick")
-#         tree.nodes.append("brick_children")
-#     elif isinstance(module, ActiveHinge):
-#         tree.nodes.append("active_hinge")
-#         tree.nodes.append("active_hinge_children")
-#     else:
-#         raise NotImplementedError()
-
-#     tree.adj.append([len(tree.nodes) - 1])
-#     adj = []
-#     tree.adj.append(adj)
-
-#     for child in module.children:
-#         next_index = len(tree.nodes)
-#         adj.append(next_index)
-#         if child is None:
-#             tree.nodes.append("empty")
-#             tree.adj.append([])
-#         else:
-#             __module_to_tree(child, tree)
-
-
 def __module_to_tree(module: Module, tree: Tree) -> None:
     if isinstance(module, Core):
-        tree.nodes.append("core_children")
+        tree.nodes.append("core")
     elif isinstance(module, Brick):
-        tree.nodes.append("brick_children")
+        tree.nodes.append("brick")
     elif isinstance(module, ActiveHinge):
-        tree.nodes.append("active_hinge_children")
+        tree.nodes.append("active_hinge")
     else:
         raise NotImplementedError()
 
-    tree.adj.append([len(tree.nodes) - 1])
     adj = []
     tree.adj.append(adj)
 
@@ -87,7 +50,7 @@ def __module_to_tree(module: Module, tree: Tree) -> None:
 
 
 def body_to_tree(body: Body) -> Tree:
-    """ "
+    """
     Convert a body to a tree.
 
     :param body: The body to convert.
@@ -98,3 +61,34 @@ def body_to_tree(body: Body) -> Tree:
     __module_to_tree(body.core, tree)
 
     return tree
+
+
+def __children_to_modules(node_index: int, tree: Tree, parent_module: Module) -> None:
+    for i, child_node_index in enumerate(tree.adj[node_index]):
+        if tree.nodes[child_node_index] == "brick":
+            parent_module.children[i] = Brick(0.0)
+            __children_to_modules(child_node_index, tree, parent_module.children[i])
+        elif tree.nodes[child_node_index] == "active_hinge":
+            parent_module.children[i] = ActiveHinge(0.0)
+            __children_to_modules(child_node_index, tree, parent_module.children[i])
+        elif (
+            tree.nodes[child_node_index] == "empty"
+            or tree.nodes[child_node_index] == "child"
+        ):
+            parent_module.children[i] = None
+        else:
+            raise NotImplementedError()
+
+
+def tree_to_body(tree: Tree) -> Body:
+    """
+    Convert a tree to a body.
+
+    :param tree: The tree to convert.
+    :returns: The created body.
+    """
+
+    body = Body()
+    __children_to_modules(0, tree, body.core)
+    body.finalize()
+    return body
