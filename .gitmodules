@@ -10,3 +10,6 @@
 [submodule "rtgae"]
 	path = rtgae
 	url = git@github.com:surgura/rtgae.git
+[submodule "pqgrams"]
+	path = pqgrams
+	url = https://github.com/thdiaman/pqgrams.git

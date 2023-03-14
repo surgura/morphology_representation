@@ -1,7 +1,6 @@
 from rtgae import tree_grammar
 from revolve2.core.modular_robot import Body, Brick, ActiveHinge, Module, Core
-from typing import List, NamedTuple
-import numpy as np
+from tree import GraphAdjform
 
 
 def make_body_rgt() -> tree_grammar.TreeGrammar:
@@ -21,12 +20,7 @@ def make_body_rgt() -> tree_grammar.TreeGrammar:
     return grammar
 
 
-class Tree(NamedTuple):
-    nodes: List[str]
-    adj: List[List[int]]
-
-
-def __module_to_tree(module: Module, tree: Tree) -> None:
+def __module_to_tree(module: Module, tree: GraphAdjform) -> None:
     if isinstance(module, Core):
         tree.nodes.append("core")
     elif isinstance(module, Brick):
@@ -49,7 +43,7 @@ def __module_to_tree(module: Module, tree: Tree) -> None:
             __module_to_tree(child, tree)
 
 
-def body_to_tree(body: Body) -> Tree:
+def body_to_tree(body: Body) -> GraphAdjform:
     """
     Convert a body to a tree.
 
@@ -57,13 +51,15 @@ def body_to_tree(body: Body) -> Tree:
     :returns: The created tree.
     """
 
-    tree = Tree(nodes=[], adj=[])
+    tree = GraphAdjform(nodes=[], adj=[])
     __module_to_tree(body.core, tree)
 
     return tree
 
 
-def __children_to_modules(node_index: int, tree: Tree, parent_module: Module) -> None:
+def __children_to_modules(
+    node_index: int, tree: GraphAdjform, parent_module: Module
+) -> None:
     for i, child_node_index in enumerate(tree.adj[node_index]):
         if tree.nodes[child_node_index] == "brick":
             parent_module.children[i] = Brick(0.0)
@@ -80,7 +76,7 @@ def __children_to_modules(node_index: int, tree: Tree, parent_module: Module) ->
             raise NotImplementedError()
 
 
-def tree_to_body(tree: Tree) -> Body:
+def tree_to_body(tree: GraphAdjform) -> Body:
     """
     Convert a tree to a body.
 
