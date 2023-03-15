@@ -13,6 +13,7 @@ from robot_rgt import tree_to_body
 from pqgrams_util import tree_to_pqgrams
 import pqgrams
 import joblib
+import pickle
 
 
 def make_random_tree(
@@ -127,6 +128,8 @@ def main() -> None:
                 best_fit_in_combined = sum(fitnesses)
                 best_fit_actual = actual_fit
         print(f"Generation {gen_i}. Fitness: {best_fit_actual}")
+        with open(f"results/novelty/{gen_i}.pickle", "wb") as f:
+            pickle.dump((best_pop, best_fit_in_combined, best_fit_actual), f)
 
     # as_adj = [r.to_graph_adjform() for r in population]
     # for i, r in enumerate(as_adj):
