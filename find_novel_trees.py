@@ -108,13 +108,15 @@ def main() -> None:
     rng = np.random.Generator(np.random.PCG64(config.FNT_RNG_SEED))
     grammar = make_body_rgt()
 
-    best_pop = make_initial_population(rng, grammar)
+    population = make_initial_population(rng, grammar)
+
+    best_pop = None
     best_fit_in_combined = None
     best_fit_actual = None
 
     for gen_i in range(100):
-        population, fitnesses = next_generation(rng, grammar, best_pop, NUM_JOBS)
-        if best_fit_in_combined is None:
+        population, fitnesses = next_generation(rng, grammar, population, NUM_JOBS)
+        if best_pop is None:
             best_pop = population
             best_fit_in_combined = sum(fitnesses)
             best_fit_actual = sum(measure_population(population, NUM_JOBS))
