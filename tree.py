@@ -3,6 +3,7 @@ import numpy as np
 from typing import Optional, Tuple, List, Set
 from rtgae import tree_grammar
 from dataclasses import dataclass
+import copy
 
 
 @dataclass
@@ -33,6 +34,10 @@ class DirectedTreeNodeform:
         self.root = Node("core", None, None, [None] * 4)
         self.__num_nodes = self.__count_nodes(self.root)
         self.__nodes_with_none_children = [self.root]
+
+    def copy(self) -> DirectedTreeNodeform:
+        cp = copy.deepcopy(self)
+        return copy.deepcopy(self)
 
     @classmethod
     def __count_nodes(cls, node: Node) -> int:
