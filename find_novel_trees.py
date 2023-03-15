@@ -119,14 +119,14 @@ def main() -> None:
         if best_pop is None:
             best_pop = population
             best_fit_in_combined = sum(fitnesses)
-            best_fit_actual = measure_population(population, NUM_JOBS)
+            best_fit_actual = sum(measure_population(population, NUM_JOBS))
         elif sum(fitnesses) >= best_fit_in_combined:
-            actual_fit = measure_population(population, NUM_JOBS)
+            actual_fit = sum(measure_population(population, NUM_JOBS))
             if actual_fit > best_fit_actual:
                 best_pop = population
                 best_fit_in_combined = sum(fitnesses)
                 best_fit_actual = actual_fit
-        print(f"Generation {gen_i}. Fitness: {sum(best_fit_actual)}")
+        print(f"Generation {gen_i}. Fitness: {best_fit_actual}")
 
     # as_adj = [r.to_graph_adjform() for r in population]
     # for i, r in enumerate(as_adj):
