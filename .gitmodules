@@ -1,15 +1,9 @@
 [submodule "revolve2"]
 	path = revolve2
 	url = git@github.com:surgura/revolve2.git
-[submodule "gae"]
-	path = gae
-	url = git@github.com:tkipf/gae.git
-[submodule "vgae_pytorch"]
-	path = vgae_pytorch
-	url = https://github.com/DaehanKim/vgae_pytorch.git
 [submodule "rtgae"]
 	path = rtgae
 	url = git@github.com:surgura/rtgae.git
 [submodule "pqgrams"]
 	path = pqgrams
-	url = https://github.com/thdiaman/pqgrams.git
+	url = git@github.com:surgura/pqgrams.git
