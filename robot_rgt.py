@@ -1,6 +1,7 @@
 from rtgae import tree_grammar
 from revolve2.core.modular_robot import Body, Brick, ActiveHinge, Module, Core
 from tree import GraphAdjform
+from typing import List
 
 
 def make_body_rgt() -> tree_grammar.TreeGrammar:
@@ -21,7 +22,9 @@ def make_body_rgt() -> tree_grammar.TreeGrammar:
             ("empty", []),
         ],
     }
-    grammar = tree_grammar.TreeGrammar(alphabet, nonterminals, start, rules)
+    grammar = tree_grammar.TreeGrammar(
+        alphabet, nonterminals, start, rules
+    )  # type: ignore
 
     return grammar
 
@@ -36,7 +39,7 @@ def __module_to_tree(module: Module, tree: GraphAdjform) -> None:
     else:
         raise NotImplementedError()
 
-    adj = []
+    adj: List[int] = []
     tree.adj.append(adj)
 
     for child in module.children:
@@ -68,11 +71,13 @@ def __children_to_modules(
 ) -> None:
     for i, child_node_index in enumerate(tree.adj[node_index]):
         if tree.nodes[child_node_index] == "brick":
-            parent_module.children[i] = Brick(0.0)
-            __children_to_modules(child_node_index, tree, parent_module.children[i])
+            child1 = Brick(0.0)
+            parent_module.children[i] = child1
+            __children_to_modules(child_node_index, tree, child1)
         elif tree.nodes[child_node_index] == "active_hinge":
-            parent_module.children[i] = ActiveHinge(0.0)
-            __children_to_modules(child_node_index, tree, parent_module.children[i])
+            child2 = ActiveHinge(0.0)
+            parent_module.children[i] = child2
+            __children_to_modules(child_node_index, tree, child2)
         elif (
             tree.nodes[child_node_index] == "empty"
             or tree.nodes[child_node_index] == "child"

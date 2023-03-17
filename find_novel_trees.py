@@ -8,10 +8,8 @@ import numpy as np
 import config
 from robot_rgt import make_body_rgt
 from rtgae import tree_grammar
-from render2d import render_modular_robot2d
-from robot_rgt import tree_to_body
 from pqgrams_util import tree_to_pqgrams
-import pqgrams
+from pqgrams import Profile as PqgramsProfile  # type: ignore
 import joblib
 import pickle
 
@@ -38,7 +36,7 @@ def make_initial_population(
 
 
 def measure_population_parallel(
-    population: List[pqgrams.Profile], slice: Tuple[int, int]
+    population: List[PqgramsProfile], slice: Tuple[int, int]
 ) -> List[float]:
     return [
         sum([population[i].edit_distance(other_tree) for other_tree in population])
