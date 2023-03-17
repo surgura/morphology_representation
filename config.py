@@ -7,7 +7,6 @@ FNT_RNG_SEED = 120834789
 FNT_INITIAL_MUTATIONS = 20
 FNT_MUTATE_N = 5
 FNT_MUTATE_P = 0.5
-FNT_MAX_MODULES = 10
 FNT_POPULATION_SIZE = 200
 FNT_OFFSPRING_SIZE = 200
 FNT_NUM_GENERATIONS = 100
@@ -19,6 +18,11 @@ TRAIN_RNG_SEED = 23875987872
 TRAIN_OUT = path.join(RESULTS_BASE, "representation/model.state")
 TRAIN_EPOCHS = 3000
 
-# settings or representation model
+# settings for representation model
 MODEL_DIM = 100
-MODEL_DIM_VAE = 100
+MODEL_DIM_VAE = 10
+MODEL_MAX_MODULES = 10
+
+# settings for measure_quality_representation.py
+MREP_RNG_SEED = 2389471248129
+MREP_NUM_SAMPLES = 1000

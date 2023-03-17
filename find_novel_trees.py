@@ -24,7 +24,7 @@ def make_random_tree(
         tree.mutate_binomial(
             rng,
             grammar,
-            max_modules=config.FNT_MAX_MODULES,
+            max_modules=config.MODEL_MAX_MODULES,
             n=config.FNT_MUTATE_N,
             p=config.FNT_MUTATE_P,
         )
@@ -84,7 +84,7 @@ def next_generation(
         child.mutate_binomial(
             rng,
             grammar,
-            max_modules=config.FNT_MAX_MODULES,
+            max_modules=config.MODEL_MAX_MODULES,
             n=config.FNT_MUTATE_N,
             p=config.FNT_MUTATE_P,
         )
