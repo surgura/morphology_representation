@@ -67,15 +67,15 @@ def main() -> None:
         best_pop: List[DirectedTreeNodeform]
         (best_pop, _, _) = pickle.load(file)
 
-    random_sample = best_pop[rng.integers(0, len(best_pop))]
-    ranked = rank_trees_by_distance(random_sample, best_pop, num_jobs=NUM_JOBS)
-    # print(len(set([i[1] for i in ranked])))
-    # print(len(ranked))
-
     unique = []
-    for item in ranked:
+    for item in best_pop:
         if item not in unique:
             unique.append(item)
+
+    random_sample = unique[rng.integers(0, len(unique))]
+    ranked = rank_trees_by_distance(random_sample, unique, num_jobs=NUM_JOBS)
+    # print(len(set([i[1] for i in ranked])))
+    # print(len(ranked))
 
     for i, (tree, _) in enumerate(ranked):
         render2d.render_modular_robot2d(

@@ -13,3 +13,12 @@ FNT_OFFSPRING_SIZE = 200
 FNT_NUM_GENERATIONS = 100
 FNT_OUT = path.join(RESULTS_BASE, "novel_trees")
 FNT_BEST = path.join(FNT_OUT, f"{FNT_NUM_GENERATIONS}.pickle")
+
+# settings for train_representation.py
+TRAIN_RNG_SEED = 23875987872
+TRAIN_OUT = path.join(RESULTS_BASE, "representation/model.state")
+TRAIN_EPOCHS = 3000
+
+# settings or representation model
+MODEL_DIM = 100
+MODEL_DIM_VAE = 100
