@@ -25,4 +25,4 @@ MODEL_MAX_MODULES = 10
 
 # settings for measure_quality_representation.py
 MREP_RNG_SEED = 2389471248129
-MREP_NUM_SAMPLES = 1000
+MREP_NUM_SAMPLES = 10000

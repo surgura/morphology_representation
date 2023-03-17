@@ -18,6 +18,11 @@ def __tree_to_pqgrams_add_kids(
             kid = pqgrams.Node("empty")
             parent_node.addkid(kid)
             __tree_to_pqgrams_add_kids(tree, kid_i, kid)
+        elif tree.nodes[kid_i] == "child":
+            print("found node 'child'. Interpreting as 'empty'..")
+            kid = pqgrams.Node("empty")
+            parent_node.addkid(kid)
+            __tree_to_pqgrams_add_kids(tree, kid_i, kid)
         else:
             raise NotImplementedError()
 
