@@ -1,6 +1,6 @@
 from __future__ import annotations
 import numpy as np
-from typing import Optional, Tuple, List, Set
+from typing import Optional, Tuple, List, Set, Any
 from rtgae import tree_grammar
 from dataclasses import dataclass
 import copy
@@ -18,6 +18,17 @@ class Node:
     parent: Optional[Node]
     parent_index: Optional[int]
     children: List[Node]
+
+    def __eq__(self, other: Any) -> bool:
+        assert isinstance(other, Node), "can only compare Node with Node"
+
+        return self.data == other.data and all(
+            [
+                (child1 is None and child2 is None)
+                or (child1 is not None and child2 is not None and child1 == child2)
+                for child1, child2 in zip(self.children, other.children)
+            ]
+        )
 
 
 class DirectedTreeNodeform:
@@ -145,3 +156,10 @@ class DirectedTreeNodeform:
                 if node.parent not in self.__nodes_with_none_children:
                     self.__nodes_with_none_children.append(node.parent)
                 self.__num_nodes -= 1
+
+    def __eq__(self, other: Any) -> bool:
+        assert isinstance(
+            other, DirectedTreeNodeform
+        ), "can only compare DirectedTreeNodeform with DirectedTreeNodeform"
+
+        return self.root == other.root

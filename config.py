@@ -1,3 +1,7 @@
+from os import path
+
+RESULTS_BASE = "results"
+
 # settings for find_novel_trees.py
 FNT_RNG_SEED = 120834789
 FNT_INITIAL_MUTATIONS = 20
@@ -6,3 +10,6 @@ FNT_MUTATE_P = 0.5
 FNT_MAX_MODULES = 10
 FNT_POPULATION_SIZE = 200
 FNT_OFFSPRING_SIZE = 200
+FNT_NUM_GENERATIONS = 100
+FNT_OUT = path.join(RESULTS_BASE, "novel_trees")
+FNT_BEST = path.join(FNT_OUT, f"{FNT_NUM_GENERATIONS}.pickle")

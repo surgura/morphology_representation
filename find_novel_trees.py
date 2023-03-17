@@ -37,18 +37,11 @@ def make_initial_population(
     return [make_random_tree(rng, grammar) for _ in range(config.FNT_POPULATION_SIZE)]
 
 
-def compare_trees(left: pqgrams.Profile, right: pqgrams.Profile) -> float:
-    if left is right:
-        return 0.0
-
-    return left.edit_distance(right)
-
-
 def measure_population_parallel(
     population: List[pqgrams.Profile], slice: Tuple[int, int]
 ) -> List[float]:
     return [
-        sum([compare_trees(population[i], other_tree) for other_tree in population])
+        sum([population[i].edit_distance(other_tree) for other_tree in population])
         for i in range(slice[0], slice[1])
     ]
 
@@ -115,7 +108,7 @@ def main() -> None:
     best_fit_in_combined = None
     best_fit_actual = None
 
-    for gen_i in range(100):
+    for gen_i in range(1, config.FNT_NUM_GENERATIONS + 1):
         population, fitnesses = next_generation(rng, grammar, population, NUM_JOBS)
         if best_pop is None:
             best_pop = population
