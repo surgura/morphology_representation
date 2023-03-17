@@ -17,7 +17,7 @@ class Node:
     data: str
     parent: Optional[Node]
     parent_index: Optional[int]
-    children: List[Node]
+    children: List[Optional[Node]]
 
     def __eq__(self, other: Any) -> bool:
         assert isinstance(other, Node), "can only compare Node with Node"
@@ -43,7 +43,7 @@ class DirectedTreeNodeform:
         :param root: The root node of the tree.
         """
         self.root = Node("core", None, None, [None] * 4)
-        self.__num_nodes = self.__count_nodes(self.root)
+        self.__num_nodes = 1
         self.__nodes_with_none_children = [self.root]
 
     def copy(self) -> DirectedTreeNodeform:
@@ -51,24 +51,10 @@ class DirectedTreeNodeform:
         return copy.deepcopy(self)
 
     @classmethod
-    def __count_nodes(cls, node: Node) -> int:
-        return 1 + sum(
-            [cls.__count_nodes(child) for child in node.children if child is not None]
-        )
-
-    def __find_leaves(cls, node: Node) -> Set[Node]:
-        if len(node.children) == 0 or all([child is None for child in node.children]):
-            return [node]
-        else:
-            return set().union(
-                *[cls.__find_leaves(child) for child in node.children], []
-            )
-
-    @classmethod
     def __module_to_tree(cls, node: Node, tree: GraphAdjform) -> None:
         tree.nodes.append(node.data)
 
-        adj = []
+        adj: List[int] = []
         tree.adj.append(adj)
 
         for child in node.children:
@@ -151,6 +137,7 @@ class DirectedTreeNodeform:
         else:  # remove a node:
             node = can_remove[choice]
             if node.parent is not None:  # cannot remove root
+                assert node.parent_index is not None
                 self.__nodes_with_none_children.remove(node)
                 node.parent.children[node.parent_index] = None
                 if node.parent not in self.__nodes_with_none_children:

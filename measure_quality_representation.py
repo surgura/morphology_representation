@@ -69,7 +69,7 @@ def main() -> None:
     #     print(h)
     #     nodes, adj, _ = model.decode(h, max_size=32)
     #     body = tree_to_body(GraphAdjform(nodes, adj))
-    #     render_modular_robot2d(body, f"img2/{i}.png")
+    #     render_modular_robot2d(body, f"img/{i}.png")
 
 
 if __name__ == "__main__":

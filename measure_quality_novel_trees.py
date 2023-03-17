@@ -74,8 +74,6 @@ def main() -> None:
 
     random_sample = unique[rng.integers(0, len(unique))]
     ranked = rank_trees_by_distance(random_sample, unique, num_jobs=NUM_JOBS)
-    # print(len(set([i[1] for i in ranked])))
-    # print(len(ranked))
 
     for i, (tree, _) in enumerate(ranked):
         render2d.render_modular_robot2d(

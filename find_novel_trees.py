@@ -124,10 +124,6 @@ def main() -> None:
         with open(f"results/novelty/{gen_i}.pickle", "wb") as f:
             pickle.dump((best_pop, best_fit_in_combined, best_fit_actual), f)
 
-    # as_adj = [r.to_graph_adjform() for r in population]
-    # for i, r in enumerate(as_adj):
-    #     render_modular_robot2d(tree_to_body(r), f"novel/{i}.png")
-
 
 if __name__ == "__main__":
     main()

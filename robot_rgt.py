@@ -4,6 +4,12 @@ from tree import GraphAdjform
 
 
 def make_body_rgt() -> tree_grammar.TreeGrammar:
+    """
+    Make the regular tree grammar for modular robots.
+
+    :returns: The regular tree grammar.
+    """
+
     alphabet = {"core": 4, "brick": 3, "active_hinge": 1, "empty": 0}
     nonterminals = ["start", "child"]
     start = "start"
