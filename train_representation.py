@@ -9,11 +9,17 @@ import pickle
 from pqgrams_util import tree_to_pqgrams
 import pathlib
 import argparse
-import argparse_runs
+import indices_range
+import hashlib
 
 
 def do_run(run: int) -> None:
-    rng_seed = hash(f"train_representation_seed{config.TRAIN_RNG_SEED}_run{run}")
+    rng_seed = int(
+        hashlib.sha256(
+            f"train_representation_seed{config.TRAIN_RNG_SEED}_run{run}".encode()
+        ).hexdigest(),
+        16,
+    )
     rng = np.random.Generator(np.random.PCG64(rng_seed))
 
     grammar = make_body_rgt()
@@ -85,7 +91,7 @@ def do_run(run: int) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("-r", "--runs", type=argparse_runs.runs_type, required=True)
+    parser.add_argument("-r", "--runs", type=indices_range.indices_type, required=True)
     args = parser.parse_args()
 
     for run in args.runs:
