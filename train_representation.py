@@ -12,17 +12,13 @@ import argparse
 import argparse_runs
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-r", "--runs", type=argparse_runs.runs_type)
-
-    rng = np.random.Generator(np.random.PCG64(config.TRAIN_RNG_SEED))
-
-    pathlib.Path(config.TRAIN_OUT).parent.mkdir(parents=True, exist_ok=True)
+def do_run(run: int) -> None:
+    rng_seed = hash(f"train_representation_seed{config.TRAIN_RNG_SEED}_run{run}")
+    rng = np.random.Generator(np.random.PCG64(rng_seed))
 
     grammar = make_body_rgt()
 
-    with open(config.FNT_BEST, "rb") as file:
+    with open(config.FNT_BEST(run), "rb") as file:
         best_pop: List[DirectedTreeNodeform]
         (best_pop, _, _) = pickle.load(file)
 
@@ -82,7 +78,18 @@ def main() -> None:
         # perform an optimizer step
         optimizer.step()
 
-    torch.save(model.state_dict(), config.TRAIN_OUT)
+    out_dir = config.TRAIN_OUT(run)
+    pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
+    torch.save(model.state_dict(), out_dir)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-r", "--runs", type=argparse_runs.runs_type, required=True)
+    args = parser.parse_args()
+
+    for run in args.runs:
+        do_run(run)
 
 
 if __name__ == "__main__":

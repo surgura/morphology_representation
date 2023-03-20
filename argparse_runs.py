@@ -1,4 +1,5 @@
 from typing import List
+import argparse
 
 
 def runs_type(arg: str) -> List[int]:
@@ -7,9 +8,13 @@ def runs_type(arg: str) -> List[int]:
     else:
         parts = arg.split(":")
         if len(parts) != 2 or not parts[0].isnumeric() or not parts[1].isnumeric():
-            raise ValueError()
+            raise argparse.ArgumentTypeError(
+                "Runs type must be of the form <integer> (single run) or <integer>:<integer> (run range, excluding upper)."
+            )
         low = int(parts[0])
         high = int(parts[1])
         if low > high:
-            raise ValueError()
-        return [i for i in range(low, high + 1)]
+            raise argparse.ArgumentTypeError(
+                "Runs type must be of the form <integer> (single run) or <integer>:<integer> (run range, excluding upper)."
+            )
+        return [i for i in range(low, high)]
