@@ -8,9 +8,14 @@ from tree import DirectedTreeNodeform
 import pickle
 from pqgrams_util import tree_to_pqgrams
 import pathlib
+import argparse
+import argparse_runs
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-r", "--runs", type=argparse_runs.runs_type)
+
     rng = np.random.Generator(np.random.PCG64(config.TRAIN_RNG_SEED))
 
     pathlib.Path(config.TRAIN_OUT).parent.mkdir(parents=True, exist_ok=True)
