@@ -21,8 +21,8 @@ TRAIN_OUT = lambda run: path.join(
 TRAIN_EPOCHS = 3000
 
 # settings for representation model
-MODEL_DIM = 100
-MODEL_DIM_VAE = 10
+MODEL_DIM = [1, 2, 4, 8, 16, 32, 64]
+MODEL_DIM_VAE = [1, 2, 4, 8, 16, 32, 64]
 MODEL_MAX_MODULES = 10
 
 # settings for measure_quality_representation.py

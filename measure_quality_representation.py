@@ -70,13 +70,11 @@ def do_run(run: int) -> None:
 
     l = 30
     x = torch.rand(config.MODEL_DIM_VAE) * 2 - 1
-    print(x)
     for i in range(l):
         h = x + torch.normal(
             mean=torch.tensor([0.0] * config.MODEL_DIM_VAE),
             std=torch.tensor([0.1] * config.MODEL_DIM_VAE),
         )
-        print(h)
         nodes, adj, _ = model.decode(h, max_size=32)
         body = tree_to_body(GraphAdjform(nodes, adj))
         render_modular_robot2d(body, f"img/{i}.png")

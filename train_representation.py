@@ -11,12 +11,16 @@ import pathlib
 import argparse
 import indices_range
 import hashlib
+import joblib
 
 
-def do_run(run: int) -> None:
+def do_run(run: int, dim_i: int, dim_vae_i: int) -> None:
+    model_dim = config.MODEL_DIM[dim_i]
+    model_dim_vae = config.MODEL_DIM_VAE[dim_vae_i]
+
     rng_seed = int(
         hashlib.sha256(
-            f"train_representation_seed{config.TRAIN_RNG_SEED}_run{run}".encode()
+            f"train_representation_seed{config.TRAIN_RNG_SEED}_run{run}_dim_i{dim_i}_dim_vae_i{dim_vae_i}".encode()
         ).hexdigest(),
         16,
     )
@@ -36,7 +40,7 @@ def do_run(run: int) -> None:
     training_data_pqgrams = [tree_to_pqgrams(tree) for tree in training_data]
 
     model = rtgae_model.TreeGrammarAutoEncoder(
-        grammar, dim=config.MODEL_DIM, dim_vae=config.MODEL_DIM_VAE
+        grammar, dim=model_dim, dim_vae=model_dim_vae
     )
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=0.0)
 
@@ -78,7 +82,6 @@ def do_run(run: int) -> None:
 
         loss = anchor_loss + near_loss + far_loss + triplet_loss
 
-        print(loss)
         # compute the gradient
         loss.backward()
         # perform an optimizer step
@@ -91,11 +94,21 @@ def do_run(run: int) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
+    parser.add_argument("-j", "--jobs", type=int, default=1)
     parser.add_argument("-r", "--runs", type=indices_range.indices_type, required=True)
+    parser.add_argument("--dims", type=indices_range.indices_type, required=True)
+    parser.add_argument("--dim_vaes", type=indices_range.indices_type, required=True)
     args = parser.parse_args()
 
+    jobs = []
     for run in args.runs:
-        do_run(run)
+        for dim_i in args.dims:
+            for dim_vae_i in args.dim_vaes:
+                jobs.append(
+                    joblib.delayed(do_run)(run=run, dim_i=dim_i, dim_vae_i=dim_vae_i)
+                )
+
+    joblib.Parallel(n_jobs=args.jobs)(jobs)
 
 
 if __name__ == "__main__":
