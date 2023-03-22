@@ -27,19 +27,26 @@ See [config.py](config.py) for all settings used in this project.
 Create the set of novel trees using novelty search, which will be used for training the representation network:
 
 ```shell
-python find_novel_trees --runs all
+python find_novel_trees.py --runs all
 ```
 
-### 2. Train representation
+### 2. Train representations
 Train all representation networks using the created set of novel trees:
 
 ```shell
-python train_representation --runs all --t_dims all --v_dims all --jobs <choose integer>
+python train_representation.py --runs all --t_dims all --v_dims all --jobs <choose integer>
 ```
 
 ### 3. Measure locality of representations
 Measure the locality property of each representation:
 
 ```shell
-python measure_locality --runs all --t_dims all --v_dims all --jobs <choose integer>
+python measure_locality.py --runs all --t_dims all --v_dims all --jobs <choose integer>
+```
+
+### 4. Select best and worst representation
+Inspect the measured locality properties and select the best and worst.
+
+```shell
+python select_representations.py
 ```
