@@ -49,3 +49,15 @@ SREP_OUT = lambda run: path.join(
     f"run{run}",
     f"selected_reps/selection.pickle",
 )
+
+# settings for plot_locality.py
+PLOC_OUT_COMBINED_RUNS = path.join(
+    RESULTS_BASE,
+    f"locality_plot/locality.svg",
+)
+
+PLOC_OUT_INDIVIDUAL_RUNS = lambda run: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"locality_plot/locality.svg",
+)
