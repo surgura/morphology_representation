@@ -44,7 +44,14 @@ Measure the locality property of each representation:
 python measure_locality.py --runs all --t_dims all --v_dims all --jobs <choose integer>
 ```
 
-### 4. Select best and worst representation
+### 4. Plot measured locality
+Make a 3D plot of locality, t_dim, and r_dim:
+
+```shell
+python plot_locality.py
+```
+
+### 5. Select best and worst representation
 Inspect the measured locality properties and select the best and worst.
 
 ```shell

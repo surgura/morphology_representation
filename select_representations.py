@@ -4,6 +4,7 @@ import config
 from dataclasses import dataclass
 import numpy as np
 from typing import List
+import pathlib
 
 
 @dataclass
@@ -32,8 +33,11 @@ def main() -> None:
         sorted = np.argsort([m.measure for m in measures])
         best = measures[sorted[0]]
         worst = measures[sorted[-1]]
-        print(best)
-        print(worst)
+
+        out_dir = config.SREP_OUT(run)
+        pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
+        with open(out_dir, "wb") as f:
+            pickle.dump({"best": best, "worst": worst}, f)
 
 
 if __name__ == "__main__":

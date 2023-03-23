@@ -42,3 +42,10 @@ MLOC_NUM_SAMPLES = 10000
 MLOC_OUT = lambda run, t_dim, r_dim: path.join(
     RESULTS_BASE, f"run{run}", f"locality/t_dim{t_dim}___r_dim{r_dim}/measure.pickle"
 )
+
+# settings for select_representations.py
+SREP_OUT = lambda run: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"selected_reps/selection.pickle",
+)
