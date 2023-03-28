@@ -61,3 +61,17 @@ PLOC_OUT_INDIVIDUAL_RUNS = lambda run: path.join(
     f"run{run}",
     f"locality_plot/locality.svg",
 )
+
+# settings for opt_robot_displacement_*.py
+ROBOPT_NUM_INITIAL_MUTATIONS = 500
+
+ROBOPT_POPULATION_SIZE = 100
+ROBOPT_OFFSPRING_SIZE = 100
+ROBOPT_NUM_GENERATIONS = 100
+
+ROBOPT_SIMULATION_TIME = 30
+ROBOPT_SAMPLING_FREQUENCY = 5
+ROBOPT_CONTROL_FREQUENCY = 60
+
+# settings for opt_robot_displacement_benchmark.py
+OPTBENCH_RNG_SEED = 9376349871923
