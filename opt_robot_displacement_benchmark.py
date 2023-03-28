@@ -29,11 +29,17 @@ def select_parents(
     ]
 
 
-def crossover(
-    rng: np.random.Generator, population: List[Genotype], parents: List[Tuple[int, int]]
+def mate(
+    rng: np.random.Generator,
+    innov_db_body: multineat.InnovationDatabase,
+    innov_db_brain: multineat.InnovationDatabase,
+    population: List[Genotype],
+    parents: List[Tuple[int, int]],
 ) -> List[Genotype]:
     return [
-        Genotype.crossover(population[parent1], population[parent2], rng)
+        Genotype.crossover(population[parent1], population[parent2], rng).mutate(
+            innov_db_body, innov_db_brain, rng
+        )
         for (parent1, parent2) in parents
     ]
 
@@ -101,7 +107,7 @@ def do_run(run: int, num_simulators: int) -> None:
         parents = select_parents(
             rng, population, fitnesses, config.ROBOPT_OFFSPRING_SIZE
         )
-        offspring = crossover(rng, population, parents)
+        offspring = mate(rng, innov_db_body, innov_db_brain, population, parents)
         offspring_fitnesses = evaluator.evaluate(
             [genotype.develop() for genotype in offspring]
         )
