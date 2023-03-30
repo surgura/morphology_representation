@@ -95,6 +95,7 @@ def do_run(run: int, num_simulators: int) -> None:
     dbengine = open_database_sqlite(config.OPTBENCH_OUT(run), create=True)
     db.Base.metadata.create_all(dbengine)
 
+    logging.info("Generating initial population.")
     initial_genotypes = [
         db.Genotype.random(
             innov_db_body=innov_db_body,
@@ -104,6 +105,7 @@ def do_run(run: int, num_simulators: int) -> None:
         )
         for _ in range(config.ROBOPT_POPULATION_SIZE)
     ]
+    logging.info("Evaluating initial population.")
     initial_fitnesses = evaluator.evaluate(
         [genotype.develop() for genotype in initial_genotypes]
     )
@@ -117,13 +119,16 @@ def do_run(run: int, num_simulators: int) -> None:
         0,
         population,
     )
+    logging.info("Saving initial population.")
     with Session(dbengine, expire_on_commit=False) as ses:
         ses.add(generation)
         ses.commit()
 
+    logging.info("Start optimization process.")
     while generation.generation_index < config.ROBOPT_NUM_GENERATIONS:
-        print([i.fitness for i in generation.population.individuals])
-
+        logging.info(
+            f"Generation {generation.generation_index + 1} / {config.ROBOPT_NUM_GENERATIONS}."
+        )
         parents = select_parents(
             rng, generation.population, config.ROBOPT_OFFSPRING_SIZE
         )
@@ -155,7 +160,6 @@ def do_run(run: int, num_simulators: int) -> None:
             generation.generation_index + 1,
             survived_population,
         )
-        print(len(survived_population.individuals))
         with Session(dbengine, expire_on_commit=False) as ses:
             ses.add(generation)
             ses.commit()

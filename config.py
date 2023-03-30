@@ -75,3 +75,8 @@ ROBOPT_CONTROL_FREQUENCY = 60
 
 # settings for opt_robot_displacement_benchmark.py
 OPTBENCH_RNG_SEED = 9376349871923
+OPTBENCH_OUT = lambda run: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"opt_bench",
+)
