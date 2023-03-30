@@ -1,6 +1,5 @@
 import logging
 from typing import List, Tuple
-from robot_optimization.benchmark.genotype import Genotype
 import config
 import multineat
 import hashlib
@@ -9,20 +8,21 @@ import indices_range
 import numpy as np
 from robot_optimization.evaluator import Evaluator
 from revolve2.core.optimization.ea.generic_ea import selection, population_management
-from render2d import render_modular_robot2d
+from revolve2.core.database import open_database_sqlite
+import robot_optimization.benchmark.db as db
+from sqlalchemy.orm import Session
 
 
 def select_parents(
     rng: np.random.Generator,
-    population: List[Genotype],
-    fitnesses: List[float],
+    population: db.Population,
     offspring_size: int,
 ) -> List[Tuple[int, int]]:
     return [
         selection.multiple_unique(
             2,
-            population,
-            fitnesses,
+            [individual.genotype for individual in population.individuals],
+            [individual.fitness for individual in population.individuals],
             lambda _, fitnesses: selection.tournament(rng, fitnesses, k=1),
         )
         for _ in range(offspring_size)
@@ -33,29 +33,24 @@ def mate(
     rng: np.random.Generator,
     innov_db_body: multineat.InnovationDatabase,
     innov_db_brain: multineat.InnovationDatabase,
-    population: List[Genotype],
-    parents: List[Tuple[int, int]],
-) -> List[Genotype]:
-    return [
-        Genotype.crossover(population[parent1], population[parent2], rng).mutate(
-            innov_db_body, innov_db_brain, rng
-        )
-        for (parent1, parent2) in parents
-    ]
+    parent1: db.Genotype,
+    parent2: db.Genotype,
+) -> db.Genotype:
+    return db.Genotype.crossover(parent1, parent2, rng).mutate(
+        innov_db_body, innov_db_brain, rng
+    )
 
 
 def select_survivors(
     rng: np.random.Generator,
-    population: List[Genotype],
-    fitnesses: List[float],
-    offspring: List[Genotype],
-    offspring_fitnesses: List[float],
-) -> Tuple[List[Genotype], List[float]]:
-    old_survivors, new_survivors = population_management.steady_state(
-        population,
-        fitnesses,
-        offspring,
-        offspring_fitnesses,
+    original_population: db.Population,
+    offspring_population: db.Population,
+) -> db.Population:
+    original_survivors, offspring_survivors = population_management.steady_state(
+        [i.genotype for i in original_population.individuals],
+        [i.fitness for i in original_population.individuals],
+        [i.genotype for i in offspring_population.individuals],
+        [i.fitness for i in offspring_population.individuals],
         lambda n, genotypes, fitnesses: selection.multiple_unique(
             n,
             genotypes,
@@ -64,10 +59,21 @@ def select_survivors(
         ),
     )
 
-    return (
-        [population[i] for i in old_survivors] + [offspring[i] for i in new_survivors],
-        [fitnesses[i] for i in old_survivors]
-        + [offspring_fitnesses[i] for i in new_survivors],
+    return db.Population(
+        [
+            db.Individual(
+                original_population.individuals[i].genotype,
+                original_population.individuals[i].fitness,
+            )
+            for i in original_survivors
+        ]
+        + [
+            db.Individual(
+                offspring_population.individuals[i].genotype,
+                offspring_population.individuals[i].fitness,
+            )
+            for i in offspring_survivors
+        ]
     )
 
 
@@ -86,8 +92,11 @@ def do_run(run: int, num_simulators: int) -> None:
     innov_db_body = multineat.InnovationDatabase()
     innov_db_brain = multineat.InnovationDatabase()
 
-    population = [
-        Genotype.random(
+    dbengine = open_database_sqlite(config.OPTBENCH_OUT(run), create=True)
+    db.Base.metadata.create_all(dbengine)
+
+    initial_genotypes = [
+        db.Genotype.random(
             innov_db_body=innov_db_body,
             innov_db_brain=innov_db_brain,
             rng=rng,
@@ -95,27 +104,61 @@ def do_run(run: int, num_simulators: int) -> None:
         )
         for _ in range(config.ROBOPT_POPULATION_SIZE)
     ]
-    for i, g in enumerate(population):
-        g.i = i
-    generation_index = 0
-    fitnesses = evaluator.evaluate([genotype.develop() for genotype in population])
+    initial_fitnesses = evaluator.evaluate(
+        [genotype.develop() for genotype in initial_genotypes]
+    )
+    population = db.Population(
+        [
+            db.Individual(genotype, fitness)
+            for genotype, fitness in zip(initial_genotypes, initial_fitnesses)
+        ]
+    )
+    generation = db.Generation(
+        0,
+        population,
+    )
+    with Session(dbengine, expire_on_commit=False) as ses:
+        ses.add(generation)
+        ses.commit()
 
-    while generation_index < config.ROBOPT_NUM_GENERATIONS:
-        print(max(fitnesses))
-        print(np.average(fitnesses))
+    while generation.generation_index < config.ROBOPT_NUM_GENERATIONS:
+        print([i.fitness for i in generation.population.individuals])
 
         parents = select_parents(
-            rng, population, fitnesses, config.ROBOPT_OFFSPRING_SIZE
+            rng, generation.population, config.ROBOPT_OFFSPRING_SIZE
         )
-        offspring = mate(rng, innov_db_body, innov_db_brain, population, parents)
+        offspring_genotypes = [
+            mate(
+                rng,
+                innov_db_body,
+                innov_db_brain,
+                generation.population.individuals[parent1_i].genotype,
+                generation.population.individuals[parent2_i].genotype,
+            )
+            for parent1_i, parent2_i in parents
+        ]
         offspring_fitnesses = evaluator.evaluate(
-            [genotype.develop() for genotype in offspring]
+            [genotype.develop() for genotype in offspring_genotypes]
         )
-        population, fitnesses = select_survivors(
-            rng, population, fitnesses, offspring, offspring_fitnesses
+        offspring_population = db.Population(
+            [
+                db.Individual(genotype, fitness)
+                for genotype, fitness in zip(offspring_genotypes, offspring_fitnesses)
+            ]
         )
-
-        generation_index += 1
+        survived_population = select_survivors(
+            rng,
+            generation.population,
+            offspring_population,
+        )
+        generation = db.Generation(
+            generation.generation_index + 1,
+            survived_population,
+        )
+        print(len(survived_population.individuals))
+        with Session(dbengine, expire_on_commit=False) as ses:
+            ses.add(generation)
+            ses.commit()
 
 
 def main() -> None:
