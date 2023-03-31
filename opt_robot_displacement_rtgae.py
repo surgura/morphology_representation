@@ -94,7 +94,7 @@ def do_run(run: int, t_dim_i: int, r_dim_i: int, num_simulators: int) -> None:
 
     rng_seed = int(
         hashlib.sha256(
-            f"opt_root_displacement_benchmark_seed{config.OPTBENCH_RNG_SEED}_run{run}_r_dim{r_dim}".encode()
+            f"opt_root_displacement_benchmark_seed{config.OPTRTGAE_RNG_SEED}_run{run}_r_dim{r_dim}".encode()
         ).hexdigest(),
         16,
     )
@@ -108,7 +108,7 @@ def do_run(run: int, t_dim_i: int, r_dim_i: int, num_simulators: int) -> None:
     # multineat innovation databases
     innov_db_brain = multineat.InnovationDatabase()
 
-    dbengine = open_database_sqlite(config.OPTBENCH_OUT(run), create=True)
+    dbengine = open_database_sqlite(config.OPTRTGAE_OUT(run), create=True)
     model.Base.metadata.create_all(dbengine)
 
     logging.info("Generating initial population.")

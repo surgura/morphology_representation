@@ -82,4 +82,10 @@ OPTBENCH_OUT = lambda run: path.join(
 )
 
 # settings for opt_robot_displacement_rtgae.py
+OPTRTGAE_RNG_SEED = 986576245246
+OPTRTGAE_OUT = lambda run: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"opt_rtgae",
+)
 OPTRTGAE_MUTATE_SIGMA = 0.1
