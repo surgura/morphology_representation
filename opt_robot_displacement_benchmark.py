@@ -9,13 +9,13 @@ import numpy as np
 from robot_optimization.evaluator import Evaluator
 from revolve2.core.optimization.ea.generic_ea import selection, population_management
 from revolve2.core.database import open_database_sqlite
-import robot_optimization.benchmark.db as db
+import robot_optimization.benchmark.model as model
 from sqlalchemy.orm import Session
 
 
 def select_parents(
     rng: np.random.Generator,
-    population: db.Population,
+    population: model.Population,
     offspring_size: int,
 ) -> List[Tuple[int, int]]:
     return [
@@ -33,19 +33,19 @@ def mate(
     rng: np.random.Generator,
     innov_db_body: multineat.InnovationDatabase,
     innov_db_brain: multineat.InnovationDatabase,
-    parent1: db.Genotype,
-    parent2: db.Genotype,
-) -> db.Genotype:
-    return db.Genotype.crossover(parent1, parent2, rng).mutate(
+    parent1: model.Genotype,
+    parent2: model.Genotype,
+) -> model.Genotype:
+    return model.Genotype.crossover(parent1, parent2, rng).mutate(
         innov_db_body, innov_db_brain, rng
     )
 
 
 def select_survivors(
     rng: np.random.Generator,
-    original_population: db.Population,
-    offspring_population: db.Population,
-) -> db.Population:
+    original_population: model.Population,
+    offspring_population: model.Population,
+) -> model.Population:
     original_survivors, offspring_survivors = population_management.steady_state(
         [i.genotype for i in original_population.individuals],
         [i.fitness for i in original_population.individuals],
@@ -59,16 +59,16 @@ def select_survivors(
         ),
     )
 
-    return db.Population(
+    return model.Population(
         [
-            db.Individual(
+            model.Individual(
                 original_population.individuals[i].genotype,
                 original_population.individuals[i].fitness,
             )
             for i in original_survivors
         ]
         + [
-            db.Individual(
+            model.Individual(
                 offspring_population.individuals[i].genotype,
                 offspring_population.individuals[i].fitness,
             )
@@ -93,11 +93,11 @@ def do_run(run: int, num_simulators: int) -> None:
     innov_db_brain = multineat.InnovationDatabase()
 
     dbengine = open_database_sqlite(config.OPTBENCH_OUT(run), create=True)
-    db.Base.metadata.create_all(dbengine)
+    model.Base.metadata.create_all(dbengine)
 
     logging.info("Generating initial population.")
     initial_genotypes = [
-        db.Genotype.random(
+        model.Genotype.random(
             innov_db_body=innov_db_body,
             innov_db_brain=innov_db_brain,
             rng=rng,
@@ -109,13 +109,13 @@ def do_run(run: int, num_simulators: int) -> None:
     initial_fitnesses = evaluator.evaluate(
         [genotype.develop() for genotype in initial_genotypes]
     )
-    population = db.Population(
+    population = model.Population(
         [
-            db.Individual(genotype, fitness)
+            model.Individual(genotype, fitness)
             for genotype, fitness in zip(initial_genotypes, initial_fitnesses)
         ]
     )
-    generation = db.Generation(
+    generation = model.Generation(
         0,
         population,
     )
@@ -145,9 +145,9 @@ def do_run(run: int, num_simulators: int) -> None:
         offspring_fitnesses = evaluator.evaluate(
             [genotype.develop() for genotype in offspring_genotypes]
         )
-        offspring_population = db.Population(
+        offspring_population = model.Population(
             [
-                db.Individual(genotype, fitness)
+                model.Individual(genotype, fitness)
                 for genotype, fitness in zip(offspring_genotypes, offspring_fitnesses)
             ]
         )
@@ -156,7 +156,7 @@ def do_run(run: int, num_simulators: int) -> None:
             generation.population,
             offspring_population,
         )
-        generation = db.Generation(
+        generation = model.Generation(
             generation.generation_index + 1,
             survived_population,
         )

@@ -65,11 +65,11 @@ PLOC_OUT_INDIVIDUAL_RUNS = lambda run: path.join(
 # settings for opt_robot_displacement_*.py
 ROBOPT_NUM_INITIAL_MUTATIONS = 500
 
-ROBOPT_POPULATION_SIZE = 100
-ROBOPT_OFFSPRING_SIZE = 100
+ROBOPT_POPULATION_SIZE = 8
+ROBOPT_OFFSPRING_SIZE = 8
 ROBOPT_NUM_GENERATIONS = 100
 
-ROBOPT_SIMULATION_TIME = 30
+ROBOPT_SIMULATION_TIME = 2
 ROBOPT_SAMPLING_FREQUENCY = 5
 ROBOPT_CONTROL_FREQUENCY = 60
 
@@ -80,3 +80,6 @@ OPTBENCH_OUT = lambda run: path.join(
     f"run{run}",
     f"opt_bench",
 )
+
+# settings for opt_robot_displacement_rtgae.py
+OPTRTGAE_MUTATE_SIGMA = 0.1
