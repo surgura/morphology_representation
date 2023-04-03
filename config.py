@@ -63,6 +63,8 @@ PLOC_OUT_INDIVIDUAL_RUNS = lambda run: path.join(
 )
 
 # settings for opt_robot_displacement_*.py
+ROBOPT_RUNS = 5
+
 ROBOPT_NUM_INITIAL_MUTATIONS = 500
 
 ROBOPT_POPULATION_SIZE = 100
@@ -75,17 +77,17 @@ ROBOPT_CONTROL_FREQUENCY = 60
 
 # settings for opt_robot_displacement_benchmark.py
 OPTBENCH_RNG_SEED = 9376349871923
-OPTBENCH_OUT = lambda run: path.join(
-    RESULTS_BASE,
-    f"run{run}",
-    f"opt_bench",
+OPTBENCH_OUT = lambda run, optrun: path.join(
+    RESULTS_BASE, f"run{run}", f"opt_bench", f"optrun{optrun}"
 )
 
 # settings for opt_robot_displacement_rtgae.py
 OPTRTGAE_RNG_SEED = 986576245246
-OPTRTGAE_OUT = lambda run: path.join(
+OPTRTGAE_OUT = lambda run, optrun, bestorworst: path.join(
     RESULTS_BASE,
     f"run{run}",
     f"opt_rtgae",
+    "best" if bestorworst else "worst",
+    f"optrun{optrun}",
 )
 OPTRTGAE_MUTATE_SIGMA = 0.1

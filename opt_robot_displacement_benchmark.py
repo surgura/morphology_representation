@@ -77,10 +77,10 @@ def select_survivors(
     )
 
 
-def do_run(run: int, num_simulators: int) -> None:
+def do_run(run: int, optrun: int, num_simulators: int) -> None:
     rng_seed = int(
         hashlib.sha256(
-            f"opt_root_displacement_benchmark_seed{config.OPTBENCH_RNG_SEED}_run{run}".encode()
+            f"opt_root_displacement_benchmark_seed{config.OPTBENCH_RNG_SEED}_run{run}_optrun{optrun}".encode()
         ).hexdigest(),
         16,
     )
@@ -92,7 +92,7 @@ def do_run(run: int, num_simulators: int) -> None:
     innov_db_body = multineat.InnovationDatabase()
     innov_db_brain = multineat.InnovationDatabase()
 
-    dbengine = open_database_sqlite(config.OPTBENCH_OUT(run), create=True)
+    dbengine = open_database_sqlite(config.OPTBENCH_OUT(run, optrun), create=True)
     model.Base.metadata.create_all(dbengine)
 
     logging.info("Generating initial population.")
@@ -178,11 +178,17 @@ def main() -> None:
         type=indices_range.indices_type(range(config.RUNS)),
         required=True,
     )
+    parser.add_argument(
+        "--optruns",
+        type=indices_range.indices_type(range(config.ROBOPT_RUNS)),
+        required=True,
+    )
     parser.add_argument("-p", "--parallelism", type=int, default=1)
     args = parser.parse_args()
 
     for run in args.runs:
-        do_run(run, args.parallelism)
+        for optrun in args.optruns:
+            do_run(run, optrun, args.parallelism)
 
 
 if __name__ == "__main__":
