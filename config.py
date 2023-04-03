@@ -91,3 +91,13 @@ OPTRTGAE_OUT = lambda run, optrun, bestorworst: path.join(
     f"optrun{optrun}",
 )
 OPTRTGAE_MUTATE_SIGMA = 0.1
+
+# setting for plot_robots_fitness.py
+PLOPT_OUT_INDIVIDUAL_OPTRUNS_BENCH = lambda run, optrun: path.join(
+    RESULTS_BASE, f"run{run}", f"opt_fitness_plot/bench_optrun{optrun}.svg"
+)
+PLOPT_OUT_INDIVIDUAL_OPTRUNS_RTGAE = lambda run, optrun, bestorworst: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"opt_fitness_plot/rtgae_{'best' if bestorworst else 'worst'}_optrun{optrun}.svg",
+)
