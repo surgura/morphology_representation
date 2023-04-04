@@ -93,10 +93,12 @@ class Genotype(Base):
 
     @sqlalchemy.orm.reconstructor
     def init_on_load(self):
-        self.body = CPNNWINGenotype(multineat.Genome.Deserialize(self.serialized_body))
-        self.brain = CPNNWINGenotype(
-            multineat.Genome.Deserialize(self.serialized_brain)
-        )
+        body_genotype = multineat.Genome()
+        body_genotype.Deserialize(self.serialized_body)
+        self.body = CPNNWINGenotype(body_genotype)
+        brain_genotype = multineat.Genome()
+        brain_genotype.Deserialize(self.serialized_brain)
+        self.brain = CPNNWINGenotype(brain_genotype)
 
     @classmethod
     def random(
