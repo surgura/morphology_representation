@@ -16,6 +16,7 @@ def main() -> None:
     )
 
     for run in range(config.RUNS):
+        optrun_describes = []
         for optrun in range(config.ROBOPT_RUNS):
             db = open_database_sqlite(config.OPTBENCH_OUT(run, optrun))
             df = pandas.read_sql(
@@ -24,14 +25,31 @@ def main() -> None:
                 .join(bmodel.Population.individuals),
                 db,
             )
-            describe = df.groupby(by="generation_index").describe()["fitness"]
+            describe = (
+                df.groupby(by="generation_index").describe()["fitness"].reset_index()
+            )
             describe[["max", "mean", "min"]].plot()
 
             out_dir = config.PLOPT_OUT_INDIVIDUAL_OPTRUNS_BENCH(run, optrun)
             pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
             plt.savefig(out_dir)
 
-            for bestorworst in [True, False]:
+            optrun_describes.append(
+                describe[["generation_index", "max", "mean", "min"]]
+            )
+
+        df = pandas.concat(optrun_describes)
+        means = df.groupby(by="generation_index").mean().reset_index()
+        means[["max", "mean", "min"]].plot()
+
+        out_dir = config.PLOPT_OUT_MEAN_OPTRUNS_BENCH(run)
+        pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
+        plt.savefig(out_dir)
+
+    for run in range(config.RUNS):
+        for bestorworst in [True, False]:
+            optrun_describes = []
+            for optrun in range(config.ROBOPT_RUNS):
                 db = open_database_sqlite(config.OPTRTGAE_OUT(run, optrun, bestorworst))
                 df = pandas.read_sql(
                     select(
@@ -42,9 +60,9 @@ def main() -> None:
                     db,
                 )
                 describe = (
-                    df[["generation_index", "fitness"]]
-                    .groupby(by="generation_index")
+                    df.groupby(by="generation_index")
                     .describe()["fitness"]
+                    .reset_index()
                 )
                 describe[["max", "mean", "min"]].plot()
 
@@ -53,6 +71,18 @@ def main() -> None:
                 )
                 pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
                 plt.savefig(out_dir)
+
+                optrun_describes.append(
+                    describe[["generation_index", "max", "mean", "min"]]
+                )
+
+            df = pandas.concat(optrun_describes)
+            means = df.groupby(by="generation_index").mean().reset_index()
+            means[["max", "mean", "min"]].plot()
+
+            out_dir = config.PLOPT_OUT_MEAN_OPTRUNS_RTGAE(run, bestorworst)
+            pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
+            plt.savefig(out_dir)
 
 
 if __name__ == "__main__":

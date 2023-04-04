@@ -101,3 +101,11 @@ PLOPT_OUT_INDIVIDUAL_OPTRUNS_RTGAE = lambda run, optrun, bestorworst: path.join(
     f"run{run}",
     f"opt_fitness_plot/rtgae_{'best' if bestorworst else 'worst'}_optrun{optrun}.svg",
 )
+PLOPT_OUT_MEAN_OPTRUNS_BENCH = lambda run: path.join(
+    RESULTS_BASE, f"run{run}", f"opt_fitness_plot/bench_mean.svg"
+)
+PLOPT_OUT_MEAN_OPTRUNS_RTGAE = lambda run, bestorworst: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"opt_fitness_plot/rtgae_{'best' if bestorworst else 'worst'}_mean.svg",
+)
