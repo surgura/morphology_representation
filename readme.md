@@ -60,18 +60,34 @@ Inspect the measured locality properties and select the best and worst.
 python select_representations.py
 ```
 
-### 6. Optimize robots using rtgae representation
-Run an evolutionary algorithm, optimizing modular robots for displacement, using a benchmark setup used by the Computationally Intelligence Group at Vrije Universiteit. In short, the controller is a central pattern generator(an open loop signal generator), the body and brain genotype are both a compositional pattern-producing network.
+### 6. Optimize robots using benchmark CPPN representation
+Run an evolutionary algorithm, optimizing modular robots for displacement, using a benchmark setup used by the Computationally Intelligence Group at Vrije Universiteit. In short, the controller is a central pattern generator(an open loop signal generator), the body and brain genotype are both compositional pattern-producing networks.
 
 ```shell
-python opt_robot_displacement_benchmark.py --runs all --parallelism <choose integer>
+python opt_robot_displacement_benchmark.py --runs all --optruns all --parallelism <choose integer>
 ```
 
-### 7. Optimize robots using CPPN representation
+### 7. Optimize robots using rtgae representation
 Run the same evolutionary algorithm, but using the selected representations as body genotypes.
 
 ```shell
-python opt_robot_displacement_rtgae.py --runs all --parallelism <choose integer>
+python opt_robot_displacement_rtgae.py --runs all --optruns all --parallelism <choose integer>
 ```
 
-### TODO compare?
+### 8. Plot optimization results
+Plot the fitness over generations for both the benchmark and rtgae representations.
+
+```shell
+python plot_robopt_fitness.py
+```
+
+### 8.5 (optional) Visualize the best robots
+See the best robots in action. The following script simulates the best robot of the final generation for each optimization process.
+
+```shell
+python simulate_robopt.py --run <run> --optrun <optimization run> bench
+```
+
+```shell
+python simulate_robopt.py --run <run> --optrun <optimization run> rtgae <best|worst>
+```
