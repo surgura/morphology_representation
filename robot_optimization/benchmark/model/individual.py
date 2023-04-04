@@ -23,4 +23,4 @@ class Individual(Base):
         sqlalchemy.ForeignKey("genotype.id"), nullable=False, init=False
     )
     genotype: orm.Mapped[Genotype] = orm.relationship()
-    fitness: orm.Mapped[int] = orm.mapped_column(nullable=False)
+    fitness: orm.Mapped[float] = orm.mapped_column(nullable=False)
