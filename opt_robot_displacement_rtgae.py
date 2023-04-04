@@ -6,7 +6,7 @@ import hashlib
 import argparse
 import indices_range
 import numpy as np
-from robot_optimization.evaluator import Evaluator
+from evaluator import Evaluator
 from revolve2.core.optimization.ea.generic_ea import selection, population_management
 from revolve2.core.database import open_database_sqlite
 import robot_optimization.rtgae.model as model
