@@ -32,7 +32,7 @@ def main() -> None:
 
             out_dir = config.PLOPT_OUT_INDIVIDUAL_OPTRUNS_BENCH(run, optrun)
             pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
-            plt.savefig(out_dir)
+            plt.savefig(out_dir, bbox_inches="tight")
 
             optrun_describes.append(
                 describe[["generation_index", "max", "mean", "min"]]
@@ -44,7 +44,7 @@ def main() -> None:
 
         out_dir = config.PLOPT_OUT_MEAN_OPTRUNS_BENCH(run)
         pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
-        plt.savefig(out_dir)
+        plt.savefig(out_dir, bbox_inches="tight")
 
     for run in range(config.RUNS):
         for bestorworst in [True, False]:
@@ -70,7 +70,7 @@ def main() -> None:
                     run, optrun, bestorworst
                 )
                 pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
-                plt.savefig(out_dir)
+                plt.savefig(out_dir, bbox_inches="tight")
 
                 optrun_describes.append(
                     describe[["generation_index", "max", "mean", "min"]]
@@ -82,7 +82,7 @@ def main() -> None:
 
             out_dir = config.PLOPT_OUT_MEAN_OPTRUNS_RTGAE(run, bestorworst)
             pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
-            plt.savefig(out_dir)
+            plt.savefig(out_dir, bbox_inches="tight")
 
 
 if __name__ == "__main__":

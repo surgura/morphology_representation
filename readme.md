@@ -3,7 +3,7 @@
 ## Reproducing
 The following steps (approximately) reproduce the data used in the paper.
 
-In all scripts the `parallelism` parameter is proportionate to the number of CPU cores used.
+In all scripts the `parallelism` parameter is proportional to the number of CPU cores used.
 
 ### 0. Set up the project
 Clone the project:
