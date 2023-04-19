@@ -1,7 +1,7 @@
 from os import path
 
 RESULTS_BASE = "results"
-RUNS = 1
+RUNS = 10
 
 # settings for find_novel_trees.py
 FNT_RNG_SEED = 120834789
@@ -38,11 +38,11 @@ MODEL_MAX_MODULES = 10
 MODEL_REPR_DOMAIN = [-1.0, 1.0]
 
 # settings for make_dd_eval_set.py
-DDEVSET_NUM_PAIRS = 10000
+DDEVSET_NUM_PAIRS = 20000
 DDEVSET_OUT = lambda run, r_dim: path.join(
     RESULTS_BASE, f"run{run}", f"distance_distortion_eval_set/r_dim{r_dim}/set.pickle"
 )
-DDEVSET_MAX_FAILS = 10000
+DDEVSET_MAX_FAILS = 20000
 DDEVSET_SEED = 230920001435
 
 # settings for measure_locality.py

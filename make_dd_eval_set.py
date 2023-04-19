@@ -151,29 +151,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-# def plot_pdf(dim, n_samples=10000, n_bins=50):
-#     import matplotlib.pyplot as plt
-#     distances = []
-
-#     for i in range(n_samples):
-#         print(i)
-#         vector_a, vector_b = uniform_distance_vectors(dim, min_value=-1, max_value=1)
-#         distance = torch.norm(vector_a - vector_b).numpy()
-#         distances.append(distance)
-
-#     print("done")
-
-#     plt.hist(
-#         distances, bins=n_bins, density=True, alpha=0.75, label="Euclidean distance PDF"
-#     )
-#     plt.xlabel("Distance")
-#     plt.ylabel("Probability Density")
-#     plt.title(f"PDF of Euclidean distances between random vectors (dim={dim})")
-#     plt.legend()
-#     plt.show()
-
-
-# # Example usage:
-# dim = 100
-# plot_pdf(dim)
