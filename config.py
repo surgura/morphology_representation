@@ -35,6 +35,15 @@ MODEL_R_DIMS = [
     64,
 ]  # representation dimensionality. 'dim_vae' in rtgae.
 MODEL_MAX_MODULES = 10
+MODEL_REPR_DOMAIN = [-1.0, 1.0]
+
+# settings for make_dd_eval_set.py
+DDEVSET_NUM_PAIRS = 10
+DDEVSET_OUT = lambda run, r_dim: path.join(
+    RESULTS_BASE, f"run{run}", f"distance_distortion_eval_set/r_dim{r_dim}/set.pickle"
+)
+DDEVSET_MAX_FAILS = 10000
+DDEVSET_SEED = 230920001435
 
 # settings for measure_locality.py
 MLOC_RNG_SEED = 2389471248137

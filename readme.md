@@ -39,9 +39,16 @@ Train all representation networks using the created set of novel trees:
 python train_representation.py --runs all --t_dims all --v_dims all --parallelism <choose integer>
 ```
 
-### 3. Measure locality of representations
-Measure the locality property of each representation:
+### 3. Measure distance distortion of representations
 
+#### 3.1 Create evaluation set of pairs of vector representations
+```shell
+python make_dd_eval_set.py --runs all --r_dims all --parallelism <choose integer>
+```
+
+#### 3.2 Measure distance distortion for each representation
+
+TODO
 ```shell
 python measure_locality.py --runs all --t_dims all --v_dims all --parallelism <choose integer>
 ```
