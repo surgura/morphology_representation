@@ -38,7 +38,7 @@ MODEL_MAX_MODULES = 10
 MODEL_REPR_DOMAIN = [-1.0, 1.0]
 
 # settings for make_dd_eval_set.py
-DDEVSET_NUM_PAIRS = 10
+DDEVSET_NUM_PAIRS = 10000
 DDEVSET_OUT = lambda run, r_dim: path.join(
     RESULTS_BASE, f"run{run}", f"distance_distortion_eval_set/r_dim{r_dim}/set.pickle"
 )

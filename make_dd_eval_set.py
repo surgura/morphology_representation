@@ -79,7 +79,6 @@ def make_set(
     seed: int, dim: int, min_value: float, max_value: float, num_pairs: int
 ) -> List[Tuple[torch.Tensor, torch.Tensor]]:
     rng = torch.Generator()
-    print(seed)
     rng.manual_seed(seed)
     return [
         make_vector_pair(rng=rng, dim=dim, min_value=min_value, max_value=max_value)
@@ -139,8 +138,6 @@ def main() -> None:
                 ]
             )
             results_concat = sum(results, [])
-
-            print(results_concat)
 
             out_file = config.DDEVSET_OUT(run, r_dim)
             pathlib.Path(out_file).parent.mkdir(parents=True, exist_ok=True)
