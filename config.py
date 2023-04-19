@@ -1,7 +1,7 @@
 from os import path
 
 RESULTS_BASE = "results"
-RUNS = 10
+RUNS = 1
 
 # settings for find_novel_trees.py
 FNT_RNG_SEED = 120834789
@@ -45,11 +45,11 @@ DDEVSET_OUT = lambda run, r_dim: path.join(
 DDEVSET_MAX_FAILS = 20000
 DDEVSET_SEED = 230920001435
 
-# settings for measure_locality.py
-MLOC_RNG_SEED = 2389471248137
-MLOC_NUM_SAMPLES = 10000
-MLOC_OUT = lambda run, t_dim, r_dim: path.join(
-    RESULTS_BASE, f"run{run}", f"locality/t_dim{t_dim}___r_dim{r_dim}/measure.pickle"
+# settings for measure_distance_distortion.py
+MDD_OUT = lambda run, t_dim, r_dim: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"distance_distortion/t_dim{t_dim}___r_dim{r_dim}/measure.pickle",
 )
 
 # settings for select_representations.py

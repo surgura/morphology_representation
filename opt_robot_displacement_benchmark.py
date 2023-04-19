@@ -78,6 +78,11 @@ def select_survivors(
 
 
 def do_run(run: int, optrun: int, num_simulators: int) -> None:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="[%(asctime)s] [%(levelname)s] [%(module)s] %(message)s",
+    )
+
     rng_seed = int(
         hashlib.sha256(
             f"opt_root_displacement_benchmark_seed{config.OPTBENCH_RNG_SEED}_run{run}_optrun{optrun}".encode()

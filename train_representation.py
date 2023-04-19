@@ -16,6 +16,11 @@ import logging
 
 
 def do_run(run: int, t_dim_i: int, r_dim_i: int) -> None:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="[%(asctime)s] [%(levelname)s] [%(module)s] %(message)s",
+    )
+
     t_dim = config.MODEL_T_DIMS[t_dim_i]
     r_dim = config.MODEL_R_DIMS[r_dim_i]
 

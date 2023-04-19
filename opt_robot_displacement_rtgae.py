@@ -91,6 +91,11 @@ def load_body_model(
 
 
 def do_run(run: int, bestorworst: bool, optrun: int, num_simulators: int) -> None:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="[%(asctime)s] [%(levelname)s] [%(module)s] %(message)s",
+    )
+
     rng_seed = int(
         hashlib.sha256(
             f"opt_root_displacement_benchmark_seed{config.OPTRTGAE_RNG_SEED}_run{run}_optrun{optrun}_bestorworst{bestorworst}".encode()

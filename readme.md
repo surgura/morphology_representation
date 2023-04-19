@@ -47,10 +47,8 @@ python make_dd_eval_set.py --runs all --r_dims all --parallelism <choose integer
 ```
 
 #### 3.2 Measure distance distortion for each representation
-
-TODO
 ```shell
-python measure_locality.py --runs all --t_dims all --v_dims all --parallelism <choose integer>
+python measure_distance_distortion.py --runs all --t_dims all --v_dims all --parallelism <choose integer>
 ```
 
 ### 4. Plot measured localities
