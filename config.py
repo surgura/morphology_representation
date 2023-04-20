@@ -57,7 +57,7 @@ DDEVSETCUT_OUT_CDFPLOT_INDIVIDUAL = lambda run, r_dim: path.join(
 DDEVSETCUT_OUT_CDFPLOT_TOGETHER = lambda run: path.join(
     DDEVSETCUT_OUT_BASE(run), "cdf.svg"
 )
-DDEVSETCUT_CUTOFF = 0.999
+DDEVSETCUT_CUTOFF = 0.99
 
 # settings for make_dd_eval_set.py
 DDEVSET_NUM_PAIRS = 10000
