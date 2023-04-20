@@ -38,11 +38,14 @@ def is_hypercube_within_hypersphere(
 
 
 def make_vector_pair(
+    progress: int,
     rng: torch.Generator,
     dim: int,
     repr_domain: Tuple[float, float],
     max_distance: float,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
+    logging.info(f"Progress: {progress}")
+
     hypercube_side_length = repr_domain[1] - repr_domain[0]
 
     desired_distance = (torch.rand(1, generator=rng) * max_distance).item()
@@ -88,9 +91,13 @@ def make_set(
     rng.manual_seed(seed)
     return [
         make_vector_pair(
-            rng=rng, dim=dim, repr_domain=repr_domain, max_distance=max_distance
+            progress=i,
+            rng=rng,
+            dim=dim,
+            repr_domain=repr_domain,
+            max_distance=max_distance,
         )
-        for _ in range(num_pairs)
+        for i in range(num_pairs)
     ]
 
 
