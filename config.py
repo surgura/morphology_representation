@@ -60,11 +60,11 @@ DDEVSETCUT_OUT_CDFPLOT_TOGETHER = lambda run: path.join(
 DDEVSETCUT_CUTOFF = 0.999
 
 # settings for make_dd_eval_set.py
-DDEVSET_NUM_PAIRS = 20000
+DDEVSET_NUM_PAIRS = 10000
 DDEVSET_OUT = lambda run, r_dim: path.join(
     RESULTS_BASE, f"run{run}", f"distance_distortion_eval_set/r_dim{r_dim}/set.pickle"
 )
-DDEVSET_MAX_FAILS = 20000
+DDEVSET_MAX_FAILS = 1000
 DDEVSET_SEED = 230920001435
 
 # settings for measure_distance_distortion.py

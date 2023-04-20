@@ -31,26 +31,27 @@ def is_hypercube_within_hypersphere(
 
     # calculate diagonal length of hypercube
     n = hypercube_center.shape[0]  # number of dimensions
-    diagonal_length = hypercube_side_length * torch.sqrt(torch.tensor(n))
+    diagonal_length = hypercube_side_length * math.sqrt(n)
 
     # check if hypercube is completely within hypersphere
-    return diagonal_length / 2 <= hypersphere_radius - distance
+    return diagonal_length / 2.0 <= hypersphere_radius - distance
 
 
 def make_vector_pair(
-    rng: torch.Generator, dim: int, min_value: float, max_value: float
+    rng: torch.Generator,
+    dim: int,
+    repr_domain: Tuple[float, float],
+    max_distance: float,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
-    hypercube_side_length = max_value - min_value
+    hypercube_side_length = repr_domain[1] - repr_domain[0]
 
     while True:
-        max_distance = math.sqrt(dim * hypercube_side_length**2)
         desired_distance = (torch.rand(1, generator=rng) * max_distance).item()
 
         # generate a vector such that there exists at least one other vector that is desired_distance away
-        failcounter = 0
         vec1: torch.Tensor
-        while failcounter != config.DDEVSET_MAX_FAILS:
-            vec1 = make_random_vector(rng, dim, min_value, max_value)
+        while True:
+            vec1 = make_random_vector(rng, dim, repr_domain[0], repr_domain[1])
             if not is_hypercube_within_hypersphere(
                 hypercube_center=torch.tensor([0.0] * dim),
                 hypercube_side_length=hypercube_side_length,
@@ -58,30 +59,34 @@ def make_vector_pair(
                 hypersphere_radius=desired_distance,
             ):
                 break
-            failcounter += 1
-
-        if failcounter >= config.DDEVSET_MAX_FAILS:
-            continue
 
         # generate a second vector that is exactly desired_distance away from the first vector
         failcounter = 0
         vec2: torch.Tensor
         while failcounter != config.DDEVSET_MAX_FAILS:
-            direction = make_random_vector(rng, dim, min_value, max_value)
+            direction = make_random_vector(rng, dim, repr_domain[0], repr_domain[1])
             direction /= torch.norm(direction)
             vec2 = vec1 + direction * desired_distance
-            if torch.all(vec2 >= min_value) and torch.all(vec2 <= max_value):
+            if torch.all(vec2 >= repr_domain[0]) and torch.all(vec2 <= repr_domain[1]):
                 return vec1, vec2
             failcounter += 1
 
+        print("fail")
+
 
 def make_set(
-    seed: int, dim: int, min_value: float, max_value: float, num_pairs: int
+    seed: int,
+    dim: int,
+    repr_domain: Tuple[float, float],
+    num_pairs: int,
+    max_distance: float,
 ) -> List[Tuple[torch.Tensor, torch.Tensor]]:
     rng = torch.Generator()
     rng.manual_seed(seed)
     return [
-        make_vector_pair(rng=rng, dim=dim, min_value=min_value, max_value=max_value)
+        make_vector_pair(
+            rng=rng, dim=dim, repr_domain=repr_domain, max_distance=max_distance
+        )
         for _ in range(num_pairs)
     ]
 
@@ -120,6 +125,10 @@ def main() -> None:
             )
             rng = np.random.Generator(np.random.PCG64(rng_seed))
 
+            max_distance: float
+            with open(config.DDEVSETCUT_OUT_CUTOFF(run, r_dim), "rb") as f:
+                max_distance = pickle.load(f)
+
             n_jobs = args.parallelism
             sizes = [config.DDEVSET_NUM_PAIRS // n_jobs for _ in range(n_jobs)]
             sizes[0] += (
@@ -128,11 +137,11 @@ def main() -> None:
             results = joblib.Parallel(n_jobs=n_jobs)(
                 [
                     joblib.delayed(make_set)(
-                        int(rng.integers(0, 2**32)),
-                        r_dim,
-                        config.MODEL_REPR_DOMAIN[0],
-                        config.MODEL_REPR_DOMAIN[1],
-                        size,
+                        seed=int(rng.integers(0, 2**32)),
+                        dim=r_dim,
+                        repr_domain=config.MODEL_REPR_DOMAIN,
+                        num_pairs=size,
+                        max_distance=max_distance,
                     )
                     for size in sizes
                 ]
