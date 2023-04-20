@@ -39,7 +39,7 @@ MODEL_REPR_DOMAIN = [-1.0, 1.0]
 
 # settings for find_dd_eval_set_cutoff.py
 DDEVSETCUT_SEED = 3495119999991
-DDEVSETCUT_NUM_SAMPLES = 100000
+DDEVSETCUT_NUM_SAMPLES = 10000000
 DDEVSETCUT_OUT_BASE = lambda run: path.join(
     RESULTS_BASE,
     f"run{run}",
