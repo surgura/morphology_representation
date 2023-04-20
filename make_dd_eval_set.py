@@ -71,7 +71,7 @@ def make_vector_pair(
                 return vec1, vec2
             failcounter += 1
 
-        print("fail")
+        logging.info("fail")
 
 
 def make_set(
@@ -81,6 +81,11 @@ def make_set(
     num_pairs: int,
     max_distance: float,
 ) -> List[Tuple[torch.Tensor, torch.Tensor]]:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="[%(asctime)s] [%(levelname)s] [%(module)s] %(message)s",
+    )
+
     rng = torch.Generator()
     rng.manual_seed(seed)
     return [
