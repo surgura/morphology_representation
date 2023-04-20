@@ -37,6 +37,28 @@ MODEL_R_DIMS = [
 MODEL_MAX_MODULES = 10
 MODEL_REPR_DOMAIN = [-1.0, 1.0]
 
+# settings for find_dd_eval_set_cutoff.py
+DDEVSETCUT_SEED = 3495119999991
+DDEVSETCUT_NUM_SAMPLES = 100000
+DDEVSETCUT_OUT_BASE = lambda run: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"distance_distortion_eval_set_cutoff",
+)
+DDEVSETCUT_OUT_BASE_R_DIM = lambda run, r_dim: path.join(
+    DDEVSETCUT_OUT_BASE(run), f"r_dim{r_dim}"
+)
+DDEVSETCUT_OUT_CUTOFF = lambda run, r_dim: path.join(
+    DDEVSETCUT_OUT_BASE_R_DIM(run, r_dim), "cutoff.pickle"
+)
+DDEVSETCUT_OUT_CDFPLOT_INDIVIDUAL = lambda run, r_dim: path.join(
+    DDEVSETCUT_OUT_BASE_R_DIM(run, r_dim), "cdf.svg"
+)
+DDEVSETCUT_OUT_CDFPLOT_TOGETHER = lambda run: path.join(
+    DDEVSETCUT_OUT_BASE(run), "cdf.svg"
+)
+DDEVSETCUT_CUTOFF = 0.999
+
 # settings for make_dd_eval_set.py
 DDEVSET_NUM_PAIRS = 20000
 DDEVSET_OUT = lambda run, r_dim: path.join(
@@ -59,16 +81,16 @@ SREP_OUT = lambda run: path.join(
     f"selected_reps/selection.pickle",
 )
 
-# settings for plot_locality.py
-PLOC_OUT_COMBINED_RUNS = path.join(
+# settings for plot_distance_distortion.py
+PDD_OUT_COMBINED_RUNS = path.join(
     RESULTS_BASE,
-    f"locality_plot/locality.svg",
+    f"distance_distortion_plot/distance_distortion.svg",
 )
 
-PLOC_OUT_INDIVIDUAL_RUNS = lambda run: path.join(
+PDD_OUT_INDIVIDUAL_RUNS = lambda run: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"locality_plot/locality.svg",
+    f"distance_distortion_plot/distance_distortion.svg",
 )
 
 # settings for opt_robot_displacement_*.py
@@ -101,7 +123,7 @@ OPTRTGAE_OUT = lambda run, optrun, bestorworst: path.join(
 )
 OPTRTGAE_MUTATE_SIGMA = 0.1
 
-# setting for plot_robots_fitness.py
+# settings for plot_robots_fitness.py
 PLOPT_OUT_INDIVIDUAL_OPTRUNS_BENCH = lambda run, optrun: path.join(
     RESULTS_BASE, f"run{run}", f"opt_fitness_plot/bench_optrun{optrun}.svg"
 )
