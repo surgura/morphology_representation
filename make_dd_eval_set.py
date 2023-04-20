@@ -45,9 +45,9 @@ def make_vector_pair(
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     hypercube_side_length = repr_domain[1] - repr_domain[0]
 
-    while True:
-        desired_distance = (torch.rand(1, generator=rng) * max_distance).item()
+    desired_distance = (torch.rand(1, generator=rng) * max_distance).item()
 
+    while True:
         # generate a vector such that there exists at least one other vector that is desired_distance away
         vec1: torch.Tensor
         while True:

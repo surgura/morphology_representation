@@ -67,6 +67,9 @@ DDEVSET_OUT = lambda run, r_dim: path.join(
 DDEVSET_MAX_FAILS = 1000
 DDEVSET_SEED = 230920001435
 
+# setting for plot_dd_eval_set_pdf.py
+DDEVSETPLOT_NUM_BINS = 20
+
 # settings for measure_distance_distortion.py
 MDD_OUT = lambda run, t_dim, r_dim: path.join(
     RESULTS_BASE,
