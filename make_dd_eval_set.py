@@ -71,8 +71,6 @@ def make_vector_pair(
                 return vec1, vec2
             failcounter += 1
 
-        logging.info("fail")
-
 
 def make_set(
     seed: int,
