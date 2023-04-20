@@ -39,12 +39,13 @@ def is_hypercube_within_hypersphere(
 
 def make_vector_pair(
     progress: int,
+    job_index: int,
     rng: torch.Generator,
     dim: int,
     repr_domain: Tuple[float, float],
     max_distance: float,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
-    logging.info(f"Progress: {progress}")
+    logging.info(f"Progress for job {job_index}: {progress}")
 
     hypercube_side_length = repr_domain[1] - repr_domain[0]
 
@@ -76,6 +77,7 @@ def make_vector_pair(
 
 
 def make_set(
+    job_index: int,
     seed: int,
     dim: int,
     repr_domain: Tuple[float, float],
@@ -92,6 +94,7 @@ def make_set(
     return [
         make_vector_pair(
             progress=i,
+            job_index=job_index,
             rng=rng,
             dim=dim,
             repr_domain=repr_domain,
@@ -148,12 +151,13 @@ def main() -> None:
                 [
                     joblib.delayed(make_set)(
                         seed=int(rng.integers(0, 2**32)),
+                        job_index=job_index,
                         dim=r_dim,
                         repr_domain=config.MODEL_REPR_DOMAIN,
                         num_pairs=size,
                         max_distance=max_distance,
                     )
-                    for size in sizes
+                    for job_index, size in enumerate(sizes)
                 ]
             )
             results_concat = sum(results, [])
