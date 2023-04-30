@@ -1,4 +1,14 @@
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, Generic, List, Type, TypeVar
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    ClassVar,
+    Dict,
+    ForwardRef,
+    Generic,
+    List,
+    Type,
+    TypeVar,
+)
 
 import sqlalchemy.ext.orderinglist
 import sqlalchemy.orm as orm
@@ -32,6 +42,9 @@ class Population(HasId, orm.MappedAsDataclass, Generic[TIndividual]):
         generic_types = init_subclass_get_generic_args(cls, Population)
         assert len(generic_types) == 1
         cls.__type_tindividual = generic_types[0]
+        assert not isinstance(
+            cls.__type_tindividual, ForwardRef
+        ), "TIndividual generic argument cannot be a forward reference."
 
         super().__init_subclass__(**kwargs)  # type: ignore[arg-type]
 

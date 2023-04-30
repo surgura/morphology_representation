@@ -1,4 +1,13 @@
-from typing import TYPE_CHECKING, Any, ClassVar, Dict, Generic, Type, TypeVar
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    ClassVar,
+    Dict,
+    ForwardRef,
+    Generic,
+    Type,
+    TypeVar,
+)
 
 import sqlalchemy
 import sqlalchemy.orm as orm
@@ -57,8 +66,14 @@ class Individual(HasId, orm.MappedAsDataclass, Generic[TGenotype]):
         generic_types = init_subclass_get_generic_args(cls, Individual)
         assert len(generic_types) == 1
         cls.__type_tgenotype = generic_types[0]
+        assert not isinstance(
+            cls.__type_tgenotype, ForwardRef
+        ), "TGenotype generic argument cannot be a forward reference."
 
         cls.__population_table = population_table
+        assert isinstance(
+            cls.__population_table, str
+        ), "population_table argument must be a string."
 
         super().__init_subclass__(**kwargs)  # type: ignore[arg-type]
 
