@@ -1,8 +1,13 @@
 """Genotype for a modular robot body and brain."""
 
 import multineat
+import numpy as np
 import sqlalchemy
+import sqlalchemy.orm as orm
+from typing_extensions import Self
+
 from revolve2.core.modular_robot import ModularRobot
+from revolve2.genotypes.cppnwin import Genotype as CPNNWINGenotype
 from revolve2.genotypes.cppnwin import crossover_v1, mutate_v1
 from revolve2.genotypes.cppnwin.modular_robot.body_genotype_v1 import (
     develop_v1 as body_develop,
@@ -16,11 +21,8 @@ from revolve2.genotypes.cppnwin.modular_robot.brain_genotype_cpg_v1 import (
 from revolve2.genotypes.cppnwin.modular_robot.brain_genotype_cpg_v1 import (
     random_v1 as brain_random,
 )
-from typing_extensions import Self
-import numpy as np
+
 from .base import Base
-from revolve2.genotypes.cppnwin import Genotype as CPNNWINGenotype
-import sqlalchemy.orm as orm
 
 
 def _make_multineat_params() -> multineat.Parameters:
