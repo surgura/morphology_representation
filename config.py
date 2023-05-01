@@ -23,6 +23,21 @@ TRAIN_OUT = lambda run, t_dim, r_dim: path.join(
 )
 TRAIN_EPOCHS = 3000
 
+# settings for generate_training_set.py
+GENTRAIN_RNG_SEED = 129812393433
+GENTRAIN_OUT = lambda run: path.join(
+    RESULTS_BASE, f"run{run}", "training_set/set.pickle"
+)
+GENTRAIN_NUM_GENERATIONS = 100
+GENTRAIN_POPULATION_SIZE = 100
+GENTRAIN_OFFSPRING_SIZE = 50
+GENTRAIN_ARCHIVE_SIZE = 100
+GENTRAIN_KNN_K = 5
+GENTRAIN_INITIAL_MUTATIONS = 20
+GENTRAIN_MUTATE_N = 5
+GENTRAIN_MUTATE_P = 0.5
+GENTRAIN_ARCHIVE_APPEND_NUM = 5
+
 # settings for representation model
 MODEL_T_DIMS = [1, 2, 4, 8, 16, 32, 64]  # tree encoding dimensionality. 'dim' in rtgae.
 MODEL_R_DIMS = [
@@ -57,10 +72,20 @@ DDEVSETCUT_OUT_CDFPLOT_INDIVIDUAL = lambda run, r_dim: path.join(
 DDEVSETCUT_OUT_CDFPLOT_TOGETHER = lambda run: path.join(
     DDEVSETCUT_OUT_BASE(run), "cdf.svg"
 )
-DDEVSETCUT_CUTOFF = 0.99
+DDEVSETCUT_CUTOFF = 0.95
+
+# settings for generate_evaluation_set.py
+GENEVAL_SEED = 34592349873289
+GENEVAL_NUM_REPRESENTATIONS = 100
+GENEVAL_NUM_BINS = 20
+GENEVAL_OUT_RTGAE = lambda run, t_dim, r_dim: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"evaluation_set/rtgae/t_dim{t_dim}___r_dim{r_dim}/set.pickle",
+)
 
 # settings for make_dd_eval_set.py
-DDEVSET_NUM_PAIRS = 10000
+DDEVSET_NUM_PAIRS = 2500
 DDEVSET_OUT = lambda run, r_dim: path.join(
     RESULTS_BASE, f"run{run}", f"distance_distortion_eval_set/r_dim{r_dim}/set.pickle"
 )
@@ -94,6 +119,12 @@ PDD_OUT_INDIVIDUAL_RUNS = lambda run: path.join(
     RESULTS_BASE,
     f"run{run}",
     f"distance_distortion_plot/distance_distortion.svg",
+)
+
+PDD_OUT_SCATTER = lambda run, t_dim, r_dim: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"distance_distortion_plot/scatter/t_dim{t_dim}___r_dim{r_dim}.svg",
 )
 
 # settings for opt_robot_displacement_*.py
