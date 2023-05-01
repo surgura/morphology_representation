@@ -9,7 +9,6 @@ import config
 from robot_rgt import make_body_rgt
 from rtgae import tree_grammar
 from pqgrams_util import tree_to_pqgrams
-from pqgrams import Profile as PqgramsProfile  # type: ignore
 import joblib
 import pickle
 import indices_range
@@ -60,7 +59,6 @@ def measure_distances_parallel(
 def measure_distances(
     to_measure: List[Tuple[DirectedTreeNodeform, DirectedTreeNodeform]], num_jobs: int
 ) -> List[float]:
-    # print(len(to_measure))
     slices = [
         (
             job_i * len(to_measure) // num_jobs,
