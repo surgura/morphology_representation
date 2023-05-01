@@ -19,17 +19,6 @@ class Node:
     parent_index: Optional[int]
     children: List[Optional[Node]]
 
-    def tree_eq(self, other: Any) -> bool:
-        assert isinstance(other, Node), "can only compare Node with Node"
-
-        return self.data == other.data and all(
-            [
-                (child1 is None and child2 is None)
-                or (child1 is not None and child2 is not None and child1 == child2)
-                for child1, child2 in zip(self.children, other.children)
-            ]
-        )
-
 
 class DirectedTreeNodeform:
     root: Node
@@ -97,7 +86,7 @@ class DirectedTreeNodeform:
         max_modules: int,
     ) -> None:
         """
-        Mutate the provided tree in-place by adding or removing a leave.
+        Mutate the provided tree in-place by adding or removing a leaf.
 
         :param rng: Random number generator.
         :param grammar: Grammar that the tree adheres to.
@@ -151,10 +140,3 @@ class DirectedTreeNodeform:
             if node.parent not in self.__nodes_with_none_children:
                 self.__nodes_with_none_children.append(node.parent)
             self.__num_nodes -= 1
-
-    def __eq__(self, other: Any) -> bool:
-        assert isinstance(
-            other, DirectedTreeNodeform
-        ), "can only compare DirectedTreeNodeform with DirectedTreeNodeform"
-
-        return self.root.tree_eq(other.root)
