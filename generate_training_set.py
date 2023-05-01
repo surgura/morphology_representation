@@ -15,7 +15,7 @@ import indices_range
 import logging
 import argparse
 import hashlib
-
+from pqgrams import Profile as PqgramsProfile
 import random
 import numpy as np
 import pathlib
@@ -45,19 +45,16 @@ def make_initial_population(
 
 
 def measure_distances_parallel(
-    population: List[Tuple[DirectedTreeNodeform, DirectedTreeNodeform]],
+    population: List[Tuple[PqgramsProfile, PqgramsProfile]],
     slice: Tuple[int, int],
 ) -> List[List[float]]:
     return [
-        tree_to_pqgrams(tree1.to_graph_adjform()).edit_distance(
-            tree_to_pqgrams(tree2.to_graph_adjform())
-        )
-        for tree1, tree2 in population[slice[0] : slice[1]]
+        tree1.edit_distance(tree2) for tree1, tree2 in population[slice[0] : slice[1]]
     ]
 
 
 def measure_distances(
-    to_measure: List[Tuple[DirectedTreeNodeform, DirectedTreeNodeform]], num_jobs: int
+    to_measure: List[Tuple[PqgramsProfile, PqgramsProfile]], num_jobs: int
 ) -> List[float]:
     slices = [
         (
@@ -67,15 +64,22 @@ def measure_distances(
         for job_i in range(num_jobs)
     ]
     slices[-1] = (slices[-1][0], len(to_measure))
-    results = joblib.Parallel(n_jobs=num_jobs)(
-        [
-            joblib.delayed(measure_distances_parallel)(
-                to_measure,
-                slice,
-            )
-            for slice in slices
-        ]
-    )
+    # results = joblib.Parallel(n_jobs=num_jobs)(
+    #     [
+    #         joblib.delayed(measure_distances_parallel)(
+    #             to_measure,
+    #             slice,
+    #         )
+    #         for slice in slices
+    #     ]
+    # )
+    results = [
+        measure_distances_parallel(
+            to_measure,
+            slice,
+        )
+        for slice in slices
+    ]
     return sum(results, [])
 
 
@@ -152,10 +156,14 @@ def do_run(run: int, parallelism: int, grammar: tree_grammar.TreeGrammar) -> Non
     for ind in population:
         nvdb.add_item(ind)
 
+    aspqgrams: Dict[DirectedTreeNodeform, PqgramsProfile] = {}
+
     gen = 0
     while gen != config.GENTRAIN_NUM_GENERATIONS:
         if len(archive) == config.GENTRAIN_ARCHIVE_SIZE:
-            logging.info(f"Archive novelty: {[sum(nvdb.novelty_subset(archive))]}")
+            logging.info(
+                f"Gen {gen} / {config.GENTRAIN_NUM_GENERATIONS} Archive novelty: {[sum(nvdb.novelty_subset(archive))]}"
+            )
         else:
             logging.info(
                 f"Building archive.. {len(archive)} / {config.GENTRAIN_ARCHIVE_SIZE}"
@@ -165,7 +173,15 @@ def do_run(run: int, parallelism: int, grammar: tree_grammar.TreeGrammar) -> Non
 
         # update novelties of existing and new individuals
         to_measure = nvdb.get_unknown_differences()
-        measured = measure_distances(to_measure, parallelism)
+        for tree0, tree1 in to_measure:
+            if tree0 not in aspqgrams:
+                aspqgrams[tree0] = tree_to_pqgrams(tree0.to_graph_adjform())
+            if tree1 not in aspqgrams:
+                aspqgrams[tree1] = tree_to_pqgrams(tree1.to_graph_adjform())
+        measured = measure_distances(
+            [(aspqgrams[tree0], aspqgrams[tree1]) for tree0, tree1 in to_measure],
+            parallelism,
+        )
         nvdb.set_unknown_differences(
             [(items, measure) for items, measure in zip(to_measure, measured)]
         )
@@ -202,6 +218,7 @@ def do_run(run: int, parallelism: int, grammar: tree_grammar.TreeGrammar) -> Non
         for item in maybe_removed:
             if (item not in archive) and (item not in population):
                 nvdb.remove_item(item)
+                aspqgrams.pop(item)
         for child, replace_index in zip(offspring, replace_indices):
             if child in population:
                 nvdb.add_item(child)
