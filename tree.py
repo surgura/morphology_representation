@@ -19,7 +19,7 @@ class Node:
     parent_index: Optional[int]
     children: List[Optional[Node]]
 
-    def __eq__(self, other: Any) -> bool:
+    def tree_eq(self, other: Any) -> bool:
         assert isinstance(other, Node), "can only compare Node with Node"
 
         return self.data == other.data and all(
@@ -106,6 +106,7 @@ class DirectedTreeNodeform:
             node
             for node in self.__nodes_with_none_children
             if all([child is None for child in node.children])
+            and node.parent is not None
         ]
         can_fill: List[Tuple[Node, int]] = []
         for node in self.__nodes_with_none_children:
@@ -113,10 +114,16 @@ class DirectedTreeNodeform:
                 if child is None:
                     can_fill.append((node, i))
 
-        choice = rng.integers(0, len(can_remove) + len(can_fill))
-        if choice >= len(can_remove):  # fill a node
+        while True:
+            fillorremove = rng.random() < 0.5
+            if (fillorremove and len(can_fill) != 0) or (
+                not fillorremove and len(can_remove) != 0
+            ):
+                break
+        if fillorremove:  # fill a node
+            choice = rng.integers(len(can_fill))
             if self.__num_nodes < max_modules:
-                parent, index = can_fill[choice - len(can_remove)]
+                parent, index = can_fill[choice]
                 choice2 = rng.integers(0, 2)
                 if choice2 == 0:  # brick
                     child = Node(
@@ -135,18 +142,19 @@ class DirectedTreeNodeform:
                     self.__nodes_with_none_children.remove(parent)
                 self.__num_nodes += 1
         else:  # remove a node:
+            choice = rng.integers(len(can_remove))
             node = can_remove[choice]
-            if node.parent is not None:  # cannot remove root
-                assert node.parent_index is not None
-                self.__nodes_with_none_children.remove(node)
-                node.parent.children[node.parent_index] = None
-                if node.parent not in self.__nodes_with_none_children:
-                    self.__nodes_with_none_children.append(node.parent)
-                self.__num_nodes -= 1
+            assert node.parent is not None, "cannot remove root"
+            assert node.parent_index is not None
+            self.__nodes_with_none_children.remove(node)
+            node.parent.children[node.parent_index] = None
+            if node.parent not in self.__nodes_with_none_children:
+                self.__nodes_with_none_children.append(node.parent)
+            self.__num_nodes -= 1
 
     def __eq__(self, other: Any) -> bool:
         assert isinstance(
             other, DirectedTreeNodeform
         ), "can only compare DirectedTreeNodeform with DirectedTreeNodeform"
 
-        return self.root == other.root
+        return self.root.tree_eq(other.root)
