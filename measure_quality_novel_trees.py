@@ -1,13 +1,15 @@
-import config
 import pickle
-from tree import DirectedTreeNodeform
 from typing import List, Tuple
-import numpy as np
-from pqgrams_util import tree_to_pqgrams
-import pqgrams
+
 import joblib
+import numpy as np
+
+import config
+import pqgrams
 import render2d
 import robot_rgt
+from pqgrams_util import tree_to_pqgrams
+from tree import DirectedTreeNodeform
 
 
 def rank_trees_by_distance_parallel(

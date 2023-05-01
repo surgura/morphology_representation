@@ -1,18 +1,20 @@
-import torch
-from rtgae import recursive_tree_grammar_auto_encoder as rtgae_model
-import numpy as np
-import config
-from robot_rgt import make_body_rgt
-from typing import List, cast
-from tree import DirectedTreeNodeform
-import pickle
-from pqgrams_util import tree_to_pqgrams
-import pathlib
 import argparse
-import indices_range
 import hashlib
-import joblib
 import logging
+import pathlib
+import pickle
+from typing import List, cast
+
+import joblib
+import numpy as np
+import torch
+
+import config
+import indices_range
+from pqgrams_util import tree_to_pqgrams
+from robot_rgt import make_body_rgt
+from rtgae import recursive_tree_grammar_auto_encoder as rtgae_model
+from tree import DirectedTreeNodeform
 
 
 def do_run(run: int, t_dim_i: int, r_dim_i: int) -> None:

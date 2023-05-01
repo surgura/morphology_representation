@@ -1,21 +1,23 @@
-import logging
-from typing import List, Tuple
-import config
-import multineat
-import hashlib
 import argparse
-import indices_range
-import numpy as np
-from evaluator import Evaluator
-from revolve2.core.optimization.ea.generic_ea import selection, population_management
-from revolve2.core.database import open_database_sqlite
-import robot_optimization.rtgae.model as model
-from sqlalchemy.orm import Session
-from rtgae.recursive_tree_grammar_auto_encoder import TreeGrammarAutoEncoder
-import torch
-from rtgae import tree_grammar
-from robot_rgt import make_body_rgt
+import hashlib
+import logging
 import pickle
+from typing import List, Tuple
+
+import multineat
+import numpy as np
+import torch
+from sqlalchemy.orm import Session
+
+import config
+import indices_range
+import robot_optimization.rtgae.model as model
+from evaluator import Evaluator
+from revolve2.core.database import open_database_sqlite
+from revolve2.core.optimization.ea.generic_ea import population_management, selection
+from robot_rgt import make_body_rgt
+from rtgae import tree_grammar
+from rtgae.recursive_tree_grammar_auto_encoder import TreeGrammarAutoEncoder
 from select_representations import Measure
 
 

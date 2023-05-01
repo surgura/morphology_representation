@@ -1,10 +1,12 @@
-import matplotlib.pyplot as plt
-import pickle
-import config
-from typing import List, Tuple
-import torch
-import logging
 import argparse
+import logging
+import pickle
+from typing import List, Tuple
+
+import matplotlib.pyplot as plt
+import torch
+
+import config
 import indices_range
 
 

@@ -25,11 +25,16 @@ The project has now been set up.
 \
 See [config.py](config.py) for all settings used in this project.
 
-### 1. Find novel trees
-Create the set of novel trees using novelty search, which will be used for training the representation network:
-
+### 1. Create training set
+Create a set of novel trees using novelty search, which will be used for training the representation network:
 ```shell
-python find_novel_trees.py --runs all
+python generate_training_set.py -r all --parallelism <choose integer>
+```
+
+#### 1.1 (optional) Render training set
+Render images of the training set.
+```shell
+python render_training_set.py -r all
 ```
 
 ### 2. Train representations

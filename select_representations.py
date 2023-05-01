@@ -1,10 +1,12 @@
 import logging
-import pickle
-import config
-from dataclasses import dataclass
-import numpy as np
-from typing import List
 import pathlib
+import pickle
+from dataclasses import dataclass
+from typing import List
+
+import numpy as np
+
+import config
 
 
 @dataclass

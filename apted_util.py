@@ -1,5 +1,6 @@
-from tree import GraphAdjform
 import apted.helpers
+
+from tree import GraphAdjform
 
 
 def __tree_to_apted_children(tree: GraphAdjform, node_i: int) -> str:

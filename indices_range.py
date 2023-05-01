@@ -1,5 +1,5 @@
-from typing import List, Optional
 import argparse
+from typing import List, Optional
 
 
 def indices_type(all_indices: List[int]):

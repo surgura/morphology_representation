@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import TypeVar, Generic, List, Tuple
+from typing import Generic, List, Tuple, TypeVar
 
 TRepresentation = TypeVar("TRepresentation")
 

@@ -1,19 +1,21 @@
-import logging
 import argparse
-import config
-from revolve2.core.modular_robot import ModularRobot
+import logging
+import pickle
+
+import torch
 from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+import config
 import robot_optimization.benchmark.model as bmodel
 import robot_optimization.rtgae.model as rmodel
-from revolve2.core.database import open_database_sqlite
-from sqlalchemy.orm import Session
 from evaluator import Evaluator
-from select_representations import Measure
-import pickle
-from rtgae.recursive_tree_grammar_auto_encoder import TreeGrammarAutoEncoder
-from rtgae import tree_grammar
-import torch
+from revolve2.core.database import open_database_sqlite
+from revolve2.core.modular_robot import ModularRobot
 from robot_rgt import make_body_rgt
+from rtgae import tree_grammar
+from rtgae.recursive_tree_grammar_auto_encoder import TreeGrammarAutoEncoder
+from select_representations import Measure
 
 
 def load_robot_bench(run: int, optrun: int) -> ModularRobot:

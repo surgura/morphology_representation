@@ -1,9 +1,12 @@
 from __future__ import annotations
-import numpy as np
-from typing import Optional, Tuple, List, Set, Any
-from rtgae import tree_grammar
-from dataclasses import dataclass
+
 import copy
+from dataclasses import dataclass
+from typing import Any, List, Optional, Set, Tuple
+
+import numpy as np
+
+from rtgae import tree_grammar
 
 
 @dataclass

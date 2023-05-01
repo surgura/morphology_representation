@@ -1,4 +1,5 @@
-from pqgrams import Node as PqgramsNode, Profile as PqgramsProfile  # type: ignore
+from pqgrams import Node as PqgramsNode
+from pqgrams import Profile as PqgramsProfile
 from tree import GraphAdjform
 
 

@@ -5,18 +5,20 @@ This consists of a set of uniformly sampled representations,
 and the set of all pairs of representations in this set and their respective distances.
 """
 
-import logging
-import config
-import torch
+import argparse
 import hashlib
-from typing import TypeVar, List, Callable, Tuple
-from evaluation_set import EvaluationSet
+import itertools
+import logging
 import pathlib
 import pickle
-import itertools
-import argparse
+from typing import Callable, List, Tuple, TypeVar
+
 import joblib
 import numpy as np
+import torch
+
+import config
+from evaluation_set import EvaluationSet
 
 TRepresentation = TypeVar("TRepresentation")
 

@@ -1,9 +1,11 @@
 """Visualize and run a modular robot using Mujoco."""
 
+import asyncio
 import math
 from random import Random
 
 from pyrr import Quaternion, Vector3
+
 from revolve2.actor_controller import ActorController
 from revolve2.core.modular_robot import ActiveHinge, Body, Brick, ModularRobot
 from revolve2.core.modular_robot.brains import BrainCpgNetworkNeighbourRandom
@@ -15,8 +17,7 @@ from revolve2.core.physics.running import (
     PosedActor,
 )
 from revolve2.runners.mujoco import LocalRunner
-from revolve2.standard_resources import terrains, modular_robots
-import asyncio
+from revolve2.standard_resources import modular_robots, terrains
 
 
 # This is exactly the same as the revolve class `revolve2.core.physics.environment_actor_controller.EnvironmentActorController`

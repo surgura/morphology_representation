@@ -1,7 +1,8 @@
-from rtgae import tree_grammar
-from revolve2.core.modular_robot import Body, Brick, ActiveHinge, Module, Core
-from tree import GraphAdjform
 from typing import List
+
+from revolve2.core.modular_robot import ActiveHinge, Body, Brick, Core, Module
+from rtgae import tree_grammar
+from tree import GraphAdjform
 
 
 def make_body_rgt() -> tree_grammar.TreeGrammar:

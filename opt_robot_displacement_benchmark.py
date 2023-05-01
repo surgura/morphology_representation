@@ -1,16 +1,18 @@
+import argparse
+import hashlib
 import logging
 from typing import List, Tuple
-import config
+
 import multineat
-import hashlib
-import argparse
-import indices_range
 import numpy as np
-from evaluator import Evaluator
-from revolve2.core.optimization.ea.generic_ea import selection, population_management
-from revolve2.core.database import open_database_sqlite
-import robot_optimization.benchmark.model as model
 from sqlalchemy.orm import Session
+
+import config
+import indices_range
+import robot_optimization.benchmark.model as model
+from evaluator import Evaluator
+from revolve2.core.database import open_database_sqlite
+from revolve2.core.optimization.ea.generic_ea import population_management, selection
 
 
 def select_parents(

@@ -1,12 +1,14 @@
 import logging
-import config
+import pathlib
+
+import matplotlib.pyplot as plt
 import pandas
+from sqlalchemy import select
+
+import config
 import robot_optimization.benchmark.model as bmodel
 import robot_optimization.rtgae.model as rmodel
-from sqlalchemy import select
 from revolve2.core.database import open_database_sqlite
-import matplotlib.pyplot as plt
-import pathlib
 
 
 def main() -> None:

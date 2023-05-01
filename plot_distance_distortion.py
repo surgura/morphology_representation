@@ -1,9 +1,11 @@
 import logging
-import config
-import pickle
-import pandas
-import matplotlib.pyplot as plt
 import pathlib
+import pickle
+
+import matplotlib.pyplot as plt
+import pandas
+
+import config
 
 
 def main() -> None:

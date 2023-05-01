@@ -1,5 +1,6 @@
-from revolve2.core.modular_robot import Body, Brick, ActiveHinge, Core
 import cairo
+
+from revolve2.core.modular_robot import ActiveHinge, Body, Brick, Core
 
 
 def render_modular_robot2d(body: Body, file_name: str) -> None:

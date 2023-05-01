@@ -1,24 +1,20 @@
-from revolve2.core.physics.running import (
-    ActorState,
-    Batch,
-    Environment as PhysicsEnv,
-    PosedActor,
-    Runner,
-)
-from revolve2.runners.mujoco import LocalRunner
+import asyncio
 import math
-from revolve2.core.modular_robot import ModularRobot
-from pyrr import Vector3, Quaternion
 from typing import List, Optional
+
+from pyrr import Quaternion, Vector3
+
+import config
+from revolve2.core.modular_robot import ModularRobot
+from revolve2.core.physics import Terrain
 from revolve2.core.physics.environment_actor_controller import (
     EnvironmentActorController,
 )
-from revolve2.core.physics.running import RecordSettings
+from revolve2.core.physics.running import ActorState, Batch
+from revolve2.core.physics.running import Environment as PhysicsEnv
+from revolve2.core.physics.running import PosedActor, RecordSettings, Runner
+from revolve2.runners.mujoco import LocalRunner
 from revolve2.standard_resources import terrains
-from revolve2.core.modular_robot import ModularRobot
-from revolve2.core.physics import Terrain
-import config
-import asyncio
 
 
 class Evaluator:
