@@ -206,8 +206,6 @@ def do_run(run: int, parallelism: int, grammar: tree_grammar.TreeGrammar) -> Non
             if child in population:
                 nvdb.add_item(child)
 
-        print(len(population), len(archive), len(nvdb.items), len(nvdb.unknown))
-
         # go to next generation once archive is full
         if len(archive) == config.GENTRAIN_ARCHIVE_SIZE:
             gen += 1
