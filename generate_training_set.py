@@ -19,6 +19,7 @@ import hashlib
 
 import random
 import numpy as np
+import pathlib
 
 
 def make_random_tree(
@@ -59,7 +60,7 @@ def measure_distances_parallel(
 def measure_distances(
     to_measure: List[Tuple[DirectedTreeNodeform, DirectedTreeNodeform]], num_jobs: int
 ) -> List[float]:
-    # as_pqgrams = [tree_to_pqgrams(tree.to_graph_adjform()) for tree in population]
+    # print(len(to_measure))
     slices = [
         (
             job_i * len(to_measure) // num_jobs,
@@ -68,22 +69,15 @@ def measure_distances(
         for job_i in range(num_jobs)
     ]
     slices[-1] = (slices[-1][0], len(to_measure))
-    # # results = joblib.Parallel(n_jobs=num_jobs)(
-    # #     [
-    # #         joblib.delayed(measure_distances_parallel)(
-    # #             as_pqgrams,
-    # #             slice,
-    # #         )
-    # #         for slice in slices
-    # #     ]
-    # # )
-    results = [
-        measure_distances_parallel(
-            to_measure,
-            slice,
-        )
-        for slice in slices
-    ]
+    results = joblib.Parallel(n_jobs=num_jobs)(
+        [
+            joblib.delayed(measure_distances_parallel)(
+                to_measure,
+                slice,
+            )
+            for slice in slices
+        ]
+    )
     return sum(results, [])
 
 
@@ -184,7 +178,7 @@ def do_run(run: int, parallelism: int, grammar: tree_grammar.TreeGrammar) -> Non
         to_archive_indices = pop_novelties_sorted[-config.GENTRAIN_ARCHIVE_APPEND_NUM :]
         archive.extend([population[index] for index in to_archive_indices])
 
-        # reduce archive to maximum size
+        # # reduce archive to maximum size
         while len(archive) > config.GENTRAIN_ARCHIVE_SIZE:
             archive_novelties = nvdb.novelty_subset(archive)
             remove_index = np.argmin(archive_novelties)
@@ -203,18 +197,27 @@ def do_run(run: int, parallelism: int, grammar: tree_grammar.TreeGrammar) -> Non
             random.randrange(len(population)) for _ in range(len(offspring))
         ]
         for child, replace_index in zip(offspring, replace_indices):
-            maybe_removed.add(population[replace_index])
-        for child, replace_index in zip(offspring, replace_indices):
+            if population[replace_index] not in offspring:
+                maybe_removed.add(population[replace_index])
             population[replace_index] = child
+        # remove items removed from archive and population if they are not present in both
         for item in maybe_removed:
-            if item not in archive and item not in population:
+            if (item not in archive) and (item not in population):
                 nvdb.remove_item(item)
         for child, replace_index in zip(offspring, replace_indices):
-            nvdb.add_item(child)
+            if child in population:
+                nvdb.add_item(child)
 
+        print(len(population), len(archive), len(nvdb.items), len(nvdb.unknown))
+
+        # go to next generation once archive is full
         if len(archive) == config.GENTRAIN_ARCHIVE_SIZE:
             gen += 1
-    # TODO save archive
+
+    out_file = config.GENTRAIN_OUT(run)
+    pathlib.Path(out_file).parent.mkdir(parents=True, exist_ok=True)
+    with open(out_file, "wb") as f:
+        pickle.dump(archive, f)
 
 
 def main() -> None:
@@ -238,120 +241,6 @@ def main() -> None:
     for run in args.runs:
         do_run(run=run, parallelism=args.parallelism, grammar=grammar)
 
-    # population = make_initial_population(rng, grammar)
-
-    # best_pop = None
-    # best_fit_in_combined = None
-    # best_fit_actual = None
-
-    # for gen_i in range(1, config.FNT_NUM_GENERATIONS + 1):
-    #     population, fitnesses = next_generation(rng, grammar, population, NUM_JOBS)
-    #     if best_pop is None:
-    #         best_pop = population
-    #         best_fit_in_combined = sum(fitnesses)
-    #         best_fit_actual = sum(measure_population(population, NUM_JOBS))
-    #     elif sum(fitnesses) >= best_fit_in_combined:
-    #         actual_fit = sum(measure_population(population, NUM_JOBS))
-    #         if actual_fit > best_fit_actual:
-    #             best_pop = population
-    #             best_fit_in_combined = sum(fitnesses)
-    #             best_fit_actual = actual_fit
-    #     print(f"Generation {gen_i}. Fitness: {best_fit_actual}")
-    #     with open(f"results/novelty/{gen_i}.pickle", "wb") as f:
-    #         pickle.dump((best_pop, best_fit_in_combined, best_fit_actual), f)
-
 
 if __name__ == "__main__":
     main()
-
-
-# def measure_population_parallel(
-#     population: List[PqgramsProfile], slice: Tuple[int, int]
-# ) -> List[float]:
-#     return [
-#         sum([population[i].edit_distance(other_tree) for other_tree in population])
-#         for i in range(slice[0], slice[1])
-#     ]
-
-
-# def measure_population(
-#     population: List[DirectedTreeNodeform], num_jobs: int
-# ) -> List[float]:
-#     as_pqgrams = [tree_to_pqgrams(tree.to_graph_adjform()) for tree in population]
-#     slices = [
-#         (
-#             job_i * len(as_pqgrams) // num_jobs,
-#             (job_i + 1) * len(as_pqgrams) // num_jobs,
-#         )
-#         for job_i in range(num_jobs)
-#     ]
-#     slices[-1] = (slices[-1][0], len(as_pqgrams))
-#     results = joblib.Parallel(n_jobs=num_jobs)(
-#         [
-#             joblib.delayed(measure_population_parallel)(
-#                 as_pqgrams,
-#                 slice,
-#             )
-#             for slice in slices
-#         ]
-#     )
-#     return sum(results, [])
-
-
-# def next_generation(
-#     rng: np.random.Generator,
-#     grammar: tree_grammar.TreeGrammar,
-#     population: List[DirectedTreeNodeform],
-#     num_jobs: int,
-# ) -> Tuple[List[DirectedTreeNodeform], List[float]]:
-#     children = [
-#         population[rng.integers(0, len(population))].copy()
-#         for _ in range(config.FNT_OFFSPRING_SIZE)
-#     ]
-#     for child in children:
-#         child.mutate_binomial(
-#             rng,
-#             grammar,
-#             max_modules=config.MODEL_MAX_MODULES,
-#             n=config.FNT_MUTATE_N,
-#             p=config.FNT_MUTATE_P,
-#         )
-
-#     combined = population + children
-#     measures = measure_population(combined, num_jobs)
-#     best_indices = np.argsort(measures)[config.FNT_POPULATION_SIZE :]
-
-#     return [combined[i] for i in best_indices], [measures[i] for i in best_indices]
-
-
-# def main() -> None:
-#     NUM_JOBS = 8
-
-#     rng = np.random.Generator(np.random.PCG64(config.FNT_RNG_SEED))
-#     grammar = make_body_rgt()
-
-#     population = make_initial_population(rng, grammar)
-
-#     best_pop = None
-#     best_fit_in_combined = None
-#     best_fit_actual = None
-
-#     for gen_i in range(1, config.FNT_NUM_GENERATIONS + 1):
-#         population, fitnesses = next_generation(rng, grammar, population, NUM_JOBS)
-#         if best_pop is None:
-#             best_pop = population
-#             best_fit_in_combined = sum(fitnesses)
-#             best_fit_actual = sum(measure_population(population, NUM_JOBS))
-#         elif sum(fitnesses) >= best_fit_in_combined:
-#             actual_fit = sum(measure_population(population, NUM_JOBS))
-#             if actual_fit > best_fit_actual:
-#                 best_pop = population
-#                 best_fit_in_combined = sum(fitnesses)
-#                 best_fit_actual = actual_fit
-#         print(f"Generation {gen_i}. Fitness: {best_fit_actual}")
-#         with open(f"results/novelty/{gen_i}.pickle", "wb") as f:
-#             pickle.dump((best_pop, best_fit_in_combined, best_fit_actual), f)
-
-
-# if __name__ == "__main__":
-#     main()
