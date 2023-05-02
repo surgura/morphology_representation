@@ -7,7 +7,6 @@ import hashlib
 import logging
 import pathlib
 import pickle
-import random
 from typing import Dict, FrozenSet, List, Set, Tuple
 
 import joblib
@@ -201,9 +200,7 @@ def do_run(run: int, parallelism: int, grammar: tree_grammar.TreeGrammar) -> Non
                 rng=rng, grammar=grammar, max_modules=config.MODEL_MAX_MODULES
             )
 
-        replace_indices = [
-            random.randrange(len(population)) for _ in range(len(offspring))
-        ]
+        replace_indices = [rng.integers(len(population)) for _ in range(len(offspring))]
         for child, replace_index in zip(offspring, replace_indices):
             if population[replace_index] not in offspring:
                 maybe_removed.add(population[replace_index])
