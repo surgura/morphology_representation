@@ -8,19 +8,20 @@ GENTRAIN_RNG_SEED = 129812393433
 GENTRAIN_OUT = lambda run: path.join(
     RESULTS_BASE, f"run{run}", "training_set/set.pickle"
 )
-GENTRAIN_NUM_GENERATIONS = 200
-GENTRAIN_POPULATION_SIZE = 128
-GENTRAIN_OFFSPRING_SIZE = 64
-GENTRAIN_ARCHIVE_SIZE = 1024
-GENTRAIN_KNN_K = 5
-GENTRAIN_INITIAL_MUTATIONS = 20
-GENTRAIN_MUTATE_N = 5
-GENTRAIN_MUTATE_P = 0.5
-GENTRAIN_ARCHIVE_APPEND_NUM = 5
+GENTRAIN_ARCHIVE_SIZE = 1000
+# ----old params----
+# GENTRAIN_NUM_GENERATIONS = 200
+# GENTRAIN_POPULATION_SIZE = 128
+# GENTRAIN_OFFSPRING_SIZE = 64
+# GENTRAIN_KNN_K = 5
+# GENTRAIN_INITIAL_MUTATIONS = 20
+# GENTRAIN_MUTATE_N = 5
+# GENTRAIN_MUTATE_P = 0.5
+# GENTRAIN_ARCHIVE_APPEND_NUM = 5
 
 # setting for render_training_set.py
 RENDERTRAIN_OUT = lambda run, item_i: path.join(
-    RESULTS_BASE, f"run{run}", f"training_set_render/{item_i}.png"
+    RESULTS_BASE, f"run{run}", f"training_set_render/{str(item_i).zfill(5)}.png"
 )
 
 # settings for representation model
