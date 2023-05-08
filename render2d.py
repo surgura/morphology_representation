@@ -1,6 +1,9 @@
 import cairo
 
-from revolve2.core.modular_robot import ActiveHinge, Body, Brick, Core
+from revolve2.core.modular_robot import ActiveHinge, Body, Brick, Core, Module
+from graphviz import Digraph
+from collections import deque
+from typing import Tuple, Optional
 
 
 def render_modular_robot2d(body: Body, file_name: str) -> None:
@@ -43,3 +46,41 @@ def render_modular_robot2d(body: Body, file_name: str) -> None:
                 raise NotImplementedError()
 
     surface.write_to_png(file_name)
+
+
+def _mod_name(mod: Optional[Module]) -> str:
+    if mod is None:
+        return "X"
+    elif isinstance(mod, Core):
+        return "C"
+    elif isinstance(mod, ActiveHinge):
+        return "H"
+    elif isinstance(mod, Brick):
+        return "B"
+    else:
+        raise NotImplementedError()
+
+
+def render_modular_robot_radial(body: Body, file_name: str) -> None:
+    queue: deque[Tuple[Module, str, int]] = deque()
+    tree = Digraph(engine="neato")
+
+    i = 0
+
+    tree.node(f"{i}", _mod_name(body.core))
+    for n in range(len(body.core.children)):
+        queue.append((body.core, f"{i}", n))
+
+    i += 1
+
+    while len(queue) > 0:
+        (pmod, pname, child_n) = queue.pop()
+        cmod = pmod.children[child_n]
+        tree.node(f"{i}", _mod_name(cmod))
+        tree.edge(pname, f"{i}", f"{child_n}")
+        if cmod is not None:
+            for n in range(len(cmod.children)):
+                queue.append((cmod, f"{i}", n))
+        i += 1
+
+    tree.render(outfile=file_name, format="png", cleanup=True)
