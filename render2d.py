@@ -76,11 +76,12 @@ def render_modular_robot_radial(body: Body, file_name: str) -> None:
     while len(queue) > 0:
         (pmod, pname, child_n) = queue.pop()
         cmod = pmod.children[child_n]
-        tree.node(f"{i}", _mod_name(cmod))
-        tree.edge(pname, f"{i}", f"{child_n}")
         if cmod is not None:
-            for n in range(len(cmod.children)):
-                queue.append((cmod, f"{i}", n))
-        i += 1
+            tree.node(f"{i}", _mod_name(cmod))
+            tree.edge(pname, f"{i}", f"{child_n}")
+            if cmod is not None:
+                for n in range(len(cmod.children)):
+                    queue.append((cmod, f"{i}", n))
+            i += 1
 
     tree.render(outfile=file_name, format="png", cleanup=True)
