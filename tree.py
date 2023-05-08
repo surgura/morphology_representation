@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import copy
+import operator
+from collections import deque
 from dataclasses import dataclass
+from functools import reduce
 from typing import Any, List, Optional, Set, Tuple
 
 import numpy as np
@@ -143,3 +146,137 @@ class DirectedTreeNodeform:
             if node.parent not in self.__nodes_with_none_children:
                 self.__nodes_with_none_children.append(node.parent)
             self.__num_nodes -= 1
+
+    @classmethod
+    def _possible_num_trees_with_any(cls, num_modules: int) -> int:
+        return (
+            cls._possible_num_trees_with_empty(num_modules)
+            + cls._possible_num_trees_with_active_hinge(num_modules)
+            + cls._possible_num_trees_with_brick(num_modules)
+        )
+
+    @classmethod
+    def _possible_num_trees_with_empty(cls, num_modules: int) -> int:
+        assert num_modules >= 0
+        if num_modules == 1:
+            return 1
+        else:
+            return 0
+
+    @classmethod
+    def _possible_num_trees_with_active_hinge(cls, num_modules: int) -> int:
+        assert num_modules >= 0
+        if num_modules < 2:
+            return 0
+        else:
+            return cls._possible_num_trees_with_any(num_modules - 1)
+
+    @classmethod
+    def _possible_num_trees_with_brick(cls, num_modules: int) -> int:
+        assert num_modules >= 0
+        if num_modules < 4:
+            return 0
+        else:
+            n = num_modules - 1
+            child_sizes = [
+                (i, j, n - i - j) for i in range(1, n - 1) for j in range(1, n - i)
+            ]
+            return sum(
+                [
+                    cls._possible_num_trees_with_any(a)
+                    * cls._possible_num_trees_with_any(b)
+                    * cls._possible_num_trees_with_any(c)
+                    for a, b, c in child_sizes
+                ]
+            )
+
+    @dataclass
+    class _OpenNode:
+        parent: Node
+        parent_index: int
+
+    @classmethod
+    def _distribute_items(
+        cls,
+        num_modules: int,
+        num_open: int,
+        __partialresult: Optional[Tuple[int, ...]] = None,
+        __results: Optional[List[Tuple[int, ...]]] = None,
+    ) -> List[Tuple[int, ...]]:
+        if __partialresult is None:
+            __partialresult = ()
+        if __results is None:
+            __results: List[Tuple[int, ...]] = []
+
+        if num_open == 1:
+            __results.append(__partialresult + (num_modules,))
+        else:
+            for i in range(1, num_modules - num_open + 2):
+                cls._distribute_items(
+                    num_modules - i, num_open - 1, __partialresult + (i,), __results
+                )
+
+        return __results
+
+    @classmethod
+    def _num_possible_trees(cls, num_modules: int, num_open: int) -> int:
+        assert num_modules >= 0
+        assert num_open >= 0
+
+        if num_modules < num_open:
+            return 0
+
+        if num_open == 0:
+            return num_modules == 0
+
+        child_sizes = list(cls._distribute_items(num_modules, num_open))
+        return sum(
+            [
+                reduce(
+                    operator.mul,
+                    [cls._possible_num_trees_with_any(size) for size in sizes],
+                )
+                for sizes in child_sizes
+            ]
+        )
+
+    @classmethod
+    def random_uniform(
+        cls, num_modules: int, rng: np.random.Generator
+    ) -> DirectedTreeNodeform:
+        opens: deque[DirectedTreeNodeform._OpenNode] = deque()
+        tree = cls()
+        for i in range(len(tree.root.children)):
+            opens.append(cls._OpenNode(tree.root, i))
+
+        while num_modules > 0:
+            assert len(opens) > 0
+
+            num_modules -= 1
+
+            open_node = opens.pop()
+
+            weight_empty = cls._num_possible_trees(num_modules, len(opens))
+            weight_active_hinge = cls._num_possible_trees(num_modules, len(opens) + 1)
+            weight_brick = cls._num_possible_trees(num_modules, len(opens) + 3)
+
+            choice = rng.integers(0, weight_empty + weight_active_hinge + weight_brick)
+            if choice < weight_empty:
+                child = Node("empty", open_node.parent, open_node.parent_index, [])
+            elif choice < weight_empty + weight_active_hinge:
+                child = Node(
+                    "active_hinge", open_node.parent, open_node.parent_index, [None]
+                )
+            else:
+                child = Node(
+                    "brick",
+                    open_node.parent,
+                    open_node.parent_index,
+                    children=[None] * 3,
+                )
+            for i in range(len(child.children)):
+                opens.append(cls._OpenNode(child, i))
+            open_node.parent.children[open_node.parent_index] = child
+        assert len(opens) == 0
+
+        return tree
