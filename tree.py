@@ -5,7 +5,7 @@ import operator
 from collections import deque
 from dataclasses import dataclass
 from functools import reduce
-from typing import Any, List, Optional, Set, Tuple
+from typing import List, Optional, Tuple, Dict
 
 import numpy as np
 
@@ -30,6 +30,8 @@ class DirectedTreeNodeform:
     root: Node
     __num_nodes: int
     __nodes_with_none_children: List[Node]
+
+    _table: Optional[Dict[Tuple[int, int], int]] = {}
 
     def __init__(self) -> None:
         """
@@ -148,17 +150,9 @@ class DirectedTreeNodeform:
             self.__num_nodes -= 1
 
     @classmethod
-    def _possible_num_trees_with_any(cls, num_modules: int) -> int:
-        return (
-            cls._possible_num_trees_with_empty(num_modules)
-            + cls._possible_num_trees_with_active_hinge(num_modules)
-            + cls._possible_num_trees_with_brick(num_modules)
-        )
-
-    @classmethod
     def _possible_num_trees_with_empty(cls, num_modules: int) -> int:
         assert num_modules >= 0
-        if num_modules == 1:
+        if num_modules == 0:
             return 1
         else:
             return 0
@@ -166,34 +160,26 @@ class DirectedTreeNodeform:
     @classmethod
     def _possible_num_trees_with_active_hinge(cls, num_modules: int) -> int:
         assert num_modules >= 0
-        if num_modules < 2:
+        if num_modules == 0:
             return 0
-        else:
-            return cls._possible_num_trees_with_any(num_modules - 1)
+
+        return cls._num_possible_trees(num_modules - 1, 1)
 
     @classmethod
     def _possible_num_trees_with_brick(cls, num_modules: int) -> int:
         assert num_modules >= 0
-        if num_modules < 4:
+        if num_modules == 0:
             return 0
-        else:
-            n = num_modules - 1
-            child_sizes = [
-                (i, j, n - i - j) for i in range(1, n - 1) for j in range(1, n - i)
-            ]
-            return sum(
-                [
-                    cls._possible_num_trees_with_any(a)
-                    * cls._possible_num_trees_with_any(b)
-                    * cls._possible_num_trees_with_any(c)
-                    for a, b, c in child_sizes
-                ]
-            )
 
-    @dataclass
-    class _OpenNode:
-        parent: Node
-        parent_index: int
+        return cls._num_possible_trees(num_modules - 1, 3)
+
+    @classmethod
+    def _possible_num_trees_with_any(cls, num_modules: int) -> int:
+        return (
+            cls._possible_num_trees_with_empty(num_modules)
+            + cls._possible_num_trees_with_active_hinge(num_modules)
+            + cls._possible_num_trees_with_brick(num_modules)
+        )
 
     @classmethod
     def _distribute_items(
@@ -211,7 +197,7 @@ class DirectedTreeNodeform:
         if num_open == 1:
             __results.append(__partialresult + (num_modules,))
         else:
-            for i in range(1, num_modules - num_open + 2):
+            for i in range(0, num_modules + 1):
                 cls._distribute_items(
                     num_modules - i, num_open - 1, __partialresult + (i,), __results
                 )
@@ -220,25 +206,35 @@ class DirectedTreeNodeform:
 
     @classmethod
     def _num_possible_trees(cls, num_modules: int, num_open: int) -> int:
-        assert num_modules >= 0
         assert num_open >= 0
 
-        if num_modules < num_open:
+        if num_modules < 0:
             return 0
 
         if num_open == 0:
-            return num_modules == 0
+            return 1 if num_modules == 0 else 0
 
-        child_sizes = list(cls._distribute_items(num_modules, num_open))
-        return sum(
-            [
-                reduce(
-                    operator.mul,
-                    [cls._possible_num_trees_with_any(size) for size in sizes],
-                )
-                for sizes in child_sizes
-            ]
-        )
+        answer = cls._table.get((num_modules, num_open))
+
+        if answer is None:
+            child_sizes = list(cls._distribute_items(num_modules, num_open))
+            answer = sum(
+                [
+                    reduce(
+                        operator.mul,
+                        [cls._possible_num_trees_with_any(size) for size in sizes],
+                    )
+                    for sizes in child_sizes
+                ]
+            )
+            cls._table[(num_modules, num_open)] = answer
+
+        return answer
+
+    @dataclass
+    class _OpenNode:
+        parent: Node
+        parent_index: int
 
     @classmethod
     def random_uniform(
@@ -249,16 +245,16 @@ class DirectedTreeNodeform:
         for i in range(len(tree.root.children)):
             opens.append(cls._OpenNode(tree.root, i))
 
-        while num_modules > 0:
+        while len(opens) > 0:
             assert len(opens) > 0
-
-            num_modules -= 1
 
             open_node = opens.pop()
 
             weight_empty = cls._num_possible_trees(num_modules, len(opens))
-            weight_active_hinge = cls._num_possible_trees(num_modules, len(opens) + 1)
-            weight_brick = cls._num_possible_trees(num_modules, len(opens) + 3)
+            weight_active_hinge = cls._num_possible_trees(
+                num_modules - 1, len(opens) + 1
+            )
+            weight_brick = cls._num_possible_trees(num_modules - 1, len(opens) + 3)
 
             choice = rng.integers(0, weight_empty + weight_active_hinge + weight_brick)
             if choice < weight_empty:
@@ -267,6 +263,7 @@ class DirectedTreeNodeform:
                 child = Node(
                     "active_hinge", open_node.parent, open_node.parent_index, [None]
                 )
+                num_modules -= 1
             else:
                 child = Node(
                     "brick",
@@ -274,9 +271,9 @@ class DirectedTreeNodeform:
                     open_node.parent_index,
                     children=[None] * 3,
                 )
+                num_modules -= 1
             for i in range(len(child.children)):
                 opens.append(cls._OpenNode(child, i))
             open_node.parent.children[open_node.parent_index] = child
-        assert len(opens) == 0
 
         return tree
