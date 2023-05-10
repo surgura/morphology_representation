@@ -10,7 +10,7 @@ from typing import List
 
 import config
 import indices_range
-from render2d import render_modular_robot2d, render_modular_robot_radial
+from render2d import render_modular_robot_radial
 from robot_rgt import tree_to_body
 from tree import DirectedTreeNodeform
 

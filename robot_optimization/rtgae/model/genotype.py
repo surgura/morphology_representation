@@ -215,7 +215,9 @@ class Genotype(Base):
         :param genotype: The genotype to create the robot from.
         :returns: The created robot.
         """
-        nodes, adj, _ = body_model.decode(torch.tensor(self.body), max_size=32)
+        nodes, adj, _ = body_model.decode(
+            torch.tensor(self.body), max_size=config.MODEL_MAX_MODULES_INCL_EMPTY
+        )
         body = tree_to_body(GraphAdjform(nodes, adj))
         brain = brain_develop(self.brain, body)
         return ModularRobot(body, brain)

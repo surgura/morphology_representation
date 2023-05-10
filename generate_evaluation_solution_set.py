@@ -12,16 +12,13 @@ from typing import List
 import numpy as np
 
 import config
-import indices_range
-from robot_rgt import make_body_rgt
-from rtgae import tree_grammar
 from tree import DirectedTreeNodeform
 
 
-def do_run(run: int, parallelism: int, grammar: tree_grammar.TreeGrammar) -> None:
+def do_run(run: int) -> None:
     rng_seed = int(
         hashlib.sha256(
-            f"generate_training_set_seed{config.GENTRAIN_RNG_SEED}_run{run}".encode()
+            f"generate_evaluation_solution_set_seed{config.GENEVALSOL_RNG_SEED}_run{run}".encode()
         ).hexdigest(),
         16,
     )
@@ -32,14 +29,14 @@ def do_run(run: int, parallelism: int, grammar: tree_grammar.TreeGrammar) -> Non
             [
                 DirectedTreeNodeform.random_uniform(size, rng)
                 for _ in range(
-                    config.GENTRAIN_ARCHIVE_SIZE // (config.MODEL_MAX_MODULES + 1 - 1)
+                    config.GENEVALSOL_ARCHIVE_SIZE // (config.MODEL_MAX_MODULES + 1 - 1)
                 )
             ]
             for size in range(1, config.MODEL_MAX_MODULES + 1)
         ],
         [],
     )
-    out_file = config.GENTRAIN_OUT(run)
+    out_file = config.GENEVALSOL_OUT(run)
     pathlib.Path(out_file).parent.mkdir(parents=True, exist_ok=True)
     with open(out_file, "wb") as f:
         pickle.dump(archive, f)
@@ -52,19 +49,10 @@ def main() -> None:
     )
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-p", "--parallelism", type=int, default=1)
-    parser.add_argument(
-        "-r",
-        "--runs",
-        type=indices_range.indices_type(range(config.RUNS)),
-        required=True,
-    )
-    args = parser.parse_args()
+    parser.parse_args()
 
-    grammar = make_body_rgt()
-
-    for run in args.runs:
-        do_run(run=run, parallelism=args.parallelism, grammar=grammar)
+    for run in range(config.RUNS):
+        do_run(run=run)
 
 
 if __name__ == "__main__":

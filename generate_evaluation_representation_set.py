@@ -18,7 +18,7 @@ import numpy as np
 import torch
 
 import config
-from evaluation_set import EvaluationSet
+from evaluation_representation_set import EvaluationRepresentationSet
 
 TRepresentation = TypeVar("TRepresentation")
 
@@ -35,7 +35,7 @@ def make_evaluation_set(
     representations: List[TRepresentation],
     calc_distance: Callable[[TRepresentation, TRepresentation], float],
     parallelism: int,
-) -> EvaluationSet[TRepresentation]:
+) -> EvaluationRepresentationSet[TRepresentation]:
     pairs = list(itertools.permutations(representations, 2))
 
     slices = [
@@ -56,24 +56,26 @@ def make_evaluation_set(
 
     min_distance = 0.0
     max_distance = max(distances)
-    bin_size = (max_distance - min_distance) / config.GENEVAL_NUM_BINS
+    bin_size = (max_distance - min_distance) / config.GENEVALREPR_NUM_BINS
     bin_ranges = [
         (min_distance + (i) * bin_size, min_distance + (1 + i) * bin_size)
-        for i in range(config.GENEVAL_NUM_BINS)
+        for i in range(config.GENEVALREPR_NUM_BINS)
     ]
     bin_indices = np.digitize(distances, [upper for (_, upper) in bin_ranges[0:-1]])
 
-    bins = [[] for _ in range(config.GENEVAL_NUM_BINS)]
+    bins = [[] for _ in range(config.GENEVALREPR_NUM_BINS)]
     for (repr_1, repr_2), distance, bin_index in zip(pairs, distances, bin_indices):
         bins[bin_index].append((repr_1, repr_2, distance))
 
-    return EvaluationSet(representations, pairs, distances, bins, bin_ranges)
+    return EvaluationRepresentationSet(
+        representations, pairs, distances, bins, bin_ranges
+    )
 
 
 def generate_for_benchmark(run: int) -> None:
     rng_seed = int(
         hashlib.sha256(
-            f"generate_evaluation_set_seed{config.GENEVAL_SEED}_benchmark_run{run}".encode()
+            f"generate_evaluation_representation_set_seed{config.GENEVALREPR_SEED}_cppn_run{run}".encode()
         ).hexdigest(),
         16,
     )
@@ -84,7 +86,7 @@ def generate_for_rtgae(run: int, t_dim: int, r_dim: int, parallelism: int) -> No
     rng_seed = (
         int(
             hashlib.sha256(
-                f"generate_evaluation_set_seed{config.GENEVAL_SEED}_rtgae_run{run}_t_dim{t_dim}_r_dim{r_dim}".encode()
+                f"generate_evaluation_representation_set_seed{config.GENEVALREPR_SEED}_rtgae_run{run}_t_dim{t_dim}_r_dim{r_dim}".encode()
             ).hexdigest(),
             16,
         )
@@ -97,14 +99,14 @@ def generate_for_rtgae(run: int, t_dim: int, r_dim: int, parallelism: int) -> No
         torch.rand(r_dim, generator=rng)
         * (config.MODEL_REPR_DOMAIN[1] - config.MODEL_REPR_DOMAIN[0])
         + config.MODEL_REPR_DOMAIN[0]
-        for _ in range(config.GENEVAL_NUM_REPRESENTATIONS)
+        for _ in range(config.GENEVALREPR_NUM_REPRESENTATIONS)
     ]
 
     evaluation_set = make_evaluation_set(
         representations, lambda a, b: torch.norm(a - b).item(), parallelism
     )
 
-    out_file = config.GENEVAL_OUT_RTGAE(run=run, t_dim=t_dim, r_dim=r_dim)
+    out_file = config.GENEVALREPR_OUT_RTGAE(run=run, t_dim=t_dim, r_dim=r_dim)
     pathlib.Path(out_file).parent.mkdir(parents=True, exist_ok=True)
     with open(out_file, "wb") as f:
         pickle.dump(

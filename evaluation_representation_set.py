@@ -5,7 +5,7 @@ TRepresentation = TypeVar("TRepresentation")
 
 
 @dataclass
-class EvaluationSet(Generic[TRepresentation]):
+class EvaluationRepresentationSet(Generic[TRepresentation]):
     representations: List[TRepresentation]
     pairs: List[Tuple[TRepresentation, TRepresentation]]
     distances: List[float]

@@ -25,79 +25,78 @@ The project has now been set up.
 \
 See [config.py](config.py) for all settings used in this project.
 
-### 1. Create training set
-Create a set of novel trees using novelty search, which will be used for training the representation network:
+### 1. Create RTGAE training set
+Create a set of robot trees which will be used for training the representation network:
 ```shell
 python generate_training_set.py -r all --parallelism <choose integer>
 ```
-
-#### 1.1 (optional) Render training set
-Render images of the training set.
+#### 1.1 (optional) Render RTGAE training set
+Render images of the training set:
 ```shell
 python render_training_set.py -r all
 ```
 
-### 2. Train representations
+### 2. Train RTGAE representations
 Train all representation networks using the created set of novel trees:
 
 ```shell
-python train_representation.py --runs all --t_dims all --v_dims all --parallelism <choose integer>
+python train_representation.py --runs all --t_dims all --r_dims all --parallelism <choose integer>
 ```
 
-### 3. Measure distance distortion of representations
-
-#### 3.1 Create evaluation set of pairs of vector representations
+### 3. Measure representation quality
+#### 3.1 Create solution evaluation set
+Create a set of robot trees which will be used to measure coverage.
 ```shell
-python make_dd_eval_set.py --runs all --r_dims all --parallelism <choose integer>
+python generate_evaluation_solution_set.py
 ```
-
-#### 3.2 Measure distance distortion for each representation
+#### 3.2 Create representation evaluation set
 ```shell
-python measure_distance_distortion.py --runs all --t_dims all --v_dims all --parallelism <choose integer>
+python generate_evaluation_representation_set.py --parallelism <choose integer>
 ```
-
-### 4. Plot measured localities
-Make a 3D plot of locality, t_dim, and r_dim. The script creates a seperate plot for each run, as well as an averaged plot.
-
+#### 3.3 Measure RTGAE coverage
 ```shell
-python plot_locality.py
+python measure_coverage_rtgae.py --runs all --t_dims all --r_dims all --parallelism <choose integer>
 ```
-
-### 5. Select best and worst representation
-Inspect the measured locality properties and select the best and worst.
-
+#### 3.4 Measure CPPN coverage
 ```shell
-python select_representations.py
+python measure_coverage_cppn.py --runs all --parallelism <choose integer>
+```
+#### 3.5 Measure RTGAE stress TODO what measure
+```shell
+python measure_stress_rtgae.py --runs all --t_dims all --r_dims all --parallelism <choose integer>
+```
+#### 3.6 Measure RTGAE stress TODO what measure
+```shell
+python measure_stress_cppn.py --runs all --parallelism <choose integer>
 ```
 
-### 6. Optimize robots using benchmark CPPN representation
+### 4 Optimize robot using different represenations
+### 4.1 Using benchmark CPPN representation
 Run an evolutionary algorithm, optimizing modular robots for displacement, using a benchmark setup used by the Computationally Intelligence Group at Vrije Universiteit. In short, the controller is a central pattern generator(an open loop signal generator), the body and brain genotype are both compositional pattern-producing networks.
 
 ```shell
-python opt_robot_displacement_benchmark.py --runs all --optruns all --parallelism <choose integer>
+python opt_robot_displacement_cppn.py --runs all --optruns all --parallelism <choose integer>
 ```
-
-### 7. Optimize robots using rtgae representation
+### 4.2 Using RTGAE representation
 Run the same evolutionary algorithm, but using the selected representations as body genotypes.
 
 ```shell
-python opt_robot_displacement_rtgae.py --runs all --optruns all --parallelism <choose integer>
+python opt_robot_displacement_rtgae.py --runs all --t_dims all --r_dims all --optruns all --parallelism <choose integer>
 ```
 
-### 8. Plot optimization results
+### 5. Plot optimization results
 Plot the fitness over generations for both the benchmark and rtgae representations.
 
 ```shell
 python plot_robopt_fitness.py
 ```
-
-### 8.5 (optional) Visualize the best robots
+### 5.1 (optional) Visualize the best robots
 See the best robots in action. The following script simulates the best robot of the final generation for each optimization process.
 
 ```shell
-python simulate_robopt.py --run <run> --optrun <optimization run> bench
+python simulate_robopt.py --run <run> --optrun <optimization run> cppn
 ```
 
 ```shell
-python simulate_robopt.py --run <run> --optrun <optimization run> rtgae <best|worst>
+python simulate_robopt.py --run <run> --optrun <optimization run> rtgae --v_dim <choose integer> --r_dim <choose integer>
 ```

@@ -244,10 +244,9 @@ class DirectedTreeNodeform:
         tree = cls()
         for i in range(len(tree.root.children)):
             opens.append(cls._OpenNode(tree.root, i))
+        num_modules -= 1
 
         while len(opens) > 0:
-            assert len(opens) > 0
-
             open_node = opens.pop()
 
             weight_empty = cls._num_possible_trees(num_modules, len(opens))

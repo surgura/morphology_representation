@@ -36,16 +36,10 @@ def do_run(run: int, t_dim_i: int, r_dim_i: int) -> None:
 
     grammar = make_body_rgt()
 
-    with open(config.FNT_BEST(run), "rb") as file:
-        best_pop: List[DirectedTreeNodeform]
-        (best_pop, _, _) = pickle.load(file)
-
-    training_data_not_unique = [tree.to_graph_adjform() for tree in best_pop]
-    training_data = []
-    for item in training_data_not_unique:
-        if item not in training_data:
-            training_data.append(item)
-    training_data_pqgrams = [tree_to_pqgrams(tree) for tree in training_data]
+    training_set: List[DirectedTreeNodeform]
+    with open(config.GENTRAIN_OUT(run), "rb") as file:
+        training_set = pickle.load(file)
+    training_set_graph_adjform = [tree.to_graph_adjform() for tree in training_set]
 
     model = rtgae_model.TreeGrammarAutoEncoder(grammar, dim=t_dim, dim_vae=r_dim)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=0.0)
@@ -53,40 +47,47 @@ def do_run(run: int, t_dim_i: int, r_dim_i: int) -> None:
     for _ in range(config.TRAIN_EPOCHS):
         optimizer.zero_grad()
         # sample a random tree from the training data
-        (anchor_i, other1_i, other2_i) = cast(
-            List[int], rng.integers(0, len(training_data), 3)
-        )
-        anchor = training_data[anchor_i]
-        if training_data_pqgrams[anchor_i].edit_distance(
-            training_data_pqgrams[other1_i]
-        ) > training_data_pqgrams[anchor_i].edit_distance(
-            training_data_pqgrams[other2_i]
-        ):
-            far = training_data[other2_i]
-            near = far = training_data[other1_i]
-        else:
-            far = training_data[other1_i]
-            near = far = training_data[other2_i]
+        # (anchor_i, other1_i, other2_i) = cast(
+        #     List[int], rng.integers(0, len(training_data), 3)
+        # )
+        # anchor = training_data[anchor_i]
+        # if training_data_pqgrams[anchor_i].edit_distance(
+        #     training_data_pqgrams[other1_i]
+        # ) > training_data_pqgrams[anchor_i].edit_distance(
+        #     training_data_pqgrams[other2_i]
+        # ):
+        #     far = training_data[other2_i]
+        #     near = far = training_data[other1_i]
+        # else:
+        #     far = training_data[other1_i]
+        #     near = far = training_data[other2_i]
 
-        anchor_loss = model.compute_loss(
+        # anchor_loss = model.compute_loss(
+        #     anchor.nodes, anchor.adj, beta=0.01, sigma_scaling=0.1
+        # )
+        # near_loss = model.compute_loss(
+        #     near.nodes, near.adj, beta=0.01, sigma_scaling=0.1
+        # )
+        # far_loss = model.compute_loss(far.nodes, far.adj, beta=0.01, sigma_scaling=0.1)
+
+        # triplet_loss = model.compute_triplet_loss(
+        #     anchor.nodes,
+        #     anchor.adj,
+        #     near.nodes,
+        #     near.adj,
+        #     far.nodes,
+        #     far.adj,
+        #     margin=1.0,
+        # )
+
+        # loss = anchor_loss + near_loss + far_loss + triplet_loss
+
+        anchor = training_set_graph_adjform[
+            rng.integers(0, len(training_set_graph_adjform))
+        ]
+        loss = model.compute_loss(
             anchor.nodes, anchor.adj, beta=0.01, sigma_scaling=0.1
         )
-        near_loss = model.compute_loss(
-            near.nodes, near.adj, beta=0.01, sigma_scaling=0.1
-        )
-        far_loss = model.compute_loss(far.nodes, far.adj, beta=0.01, sigma_scaling=0.1)
-
-        triplet_loss = model.compute_triplet_loss(
-            anchor.nodes,
-            anchor.adj,
-            near.nodes,
-            near.adj,
-            far.nodes,
-            far.adj,
-            margin=1.0,
-        )
-
-        loss = anchor_loss + near_loss + far_loss + triplet_loss
 
         logging.info(loss)
 
