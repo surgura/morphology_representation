@@ -92,23 +92,21 @@ def load_body_model(
     return model
 
 
-def do_run(run: int, bestorworst: bool, optrun: int, num_simulators: int) -> None:
+def do_run(
+    run: int, t_dim_i: int, r_dim_i: int, optrun: int, num_simulators: int
+) -> None:
+    t_dim = config.MODEL_T_DIMS[t_dim_i]
+    r_dim = config.MODEL_R_DIMS[r_dim_i]
+
     rng_seed = int(
         hashlib.sha256(
-            f"opt_root_displacement_benchmark_seed{config.OPTRTGAE_RNG_SEED}_run{run}_optrun{optrun}_bestorworst{bestorworst}".encode()
+            f"opt_root_displacement_benchmark_seed{config.OPTRTGAE_RNG_SEED}_run{run}_t_dim{t_dim}_r_dim{r_dim}_optrun{optrun}".encode()
         ).hexdigest(),
         16,
     )
     rng = np.random.Generator(np.random.PCG64(rng_seed))
 
-    with open(config.SREP_OUT(run), "rb") as f:
-        selection: Measure = pickle.load(f)["best" if bestorworst else "worst"]
-    t_dim = selection.t_dim
-    r_dim = selection.r_dim
-
-    logging.info(
-        f"Running run{run} bestorworst{bestorworst} t_dim{t_dim} r_dim{r_dim} optrun{optrun}"
-    )
+    logging.info(f"Running run{run} t_dim{t_dim} r_dim{r_dim} optrun{optrun}")
 
     grammar = make_body_rgt()
     body_model = load_body_model(run=run, t_dim=t_dim, r_dim=r_dim, grammar=grammar)
@@ -119,7 +117,7 @@ def do_run(run: int, bestorworst: bool, optrun: int, num_simulators: int) -> Non
     innov_db_brain = multineat.InnovationDatabase()
 
     dbengine = open_database_sqlite(
-        config.OPTRTGAE_OUT(run, optrun, bestorworst), create=True
+        config.OPTRTGAE_OUT(run, optrun, t_dim, r_dim), create=True
     )
     model.Base.metadata.create_all(dbengine)
 
@@ -206,6 +204,16 @@ def main() -> None:
         required=True,
     )
     parser.add_argument(
+        "--r_dims",
+        type=indices_range.indices_type(range(len(config.MODEL_R_DIMS))),
+        required=True,
+    )
+    parser.add_argument(
+        "--t_dims",
+        type=indices_range.indices_type(range(len(config.MODEL_T_DIMS))),
+        required=True,
+    )
+    parser.add_argument(
         "--optruns",
         type=indices_range.indices_type(range(config.ROBOPT_RUNS)),
         required=True,
@@ -214,14 +222,17 @@ def main() -> None:
     args = parser.parse_args()
 
     for run in args.runs:
-        for optrun in args.optruns:
-            for bestorworst in [True, False]:
-                do_run(
-                    run=run,
-                    bestorworst=bestorworst,
-                    optrun=optrun,
-                    num_simulators=args.parallelism,
-                )
+        for t_dim_i in args.t_dims:
+            for r_dim_i in args.r_dims:
+                for optrun in args.optruns:
+                    for bestorworst in [True, False]:
+                        do_run(
+                            run=run,
+                            t_dim_i=t_dim_i,
+                            r_dim_i=r_dim_i,
+                            optrun=optrun,
+                            num_simulators=args.parallelism,
+                        )
 
 
 if __name__ == "__main__":

@@ -12,7 +12,7 @@ def make_body_rgt() -> tree_grammar.TreeGrammar:
     :returns: The regular tree grammar.
     """
 
-    alphabet = {"core": 4, "brick": 3, "active_hinge": 1, "empty": 0}
+    alphabet = ["core", "brick", "active_hinge", "empty"]
     nonterminals = ["start", "child"]
     start = "start"
     rules = {

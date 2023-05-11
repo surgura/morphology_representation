@@ -127,12 +127,18 @@ OPTBENCH_OUT = lambda run, optrun: path.join(
 
 # settings for opt_robot_displacement_rtgae.py
 OPTRTGAE_RNG_SEED = 986576245246
-OPTRTGAE_OUT = lambda run, optrun, bestorworst: path.join(
+# OPTRTGAE_OUT = lambda run, optrun, bestorworst: path.join(
+#     RESULTS_BASE,
+#     f"run{run}",
+#     f"opt_rtgae",
+#     "best" if bestorworst else "worst",
+#     f"optrun{optrun}",
+# )
+OPTRTGAE_OUT = lambda run, optrun, t_dim, r_dim: path.join(
     RESULTS_BASE,
     f"run{run}",
     f"opt_rtgae",
-    "best" if bestorworst else "worst",
-    f"optrun{optrun}",
+    f"t_dim{t_dim}___r_dim{r_dim}___optrun{optrun}",
 )
 OPTRTGAE_MUTATE_SIGMA = 0.1
 
