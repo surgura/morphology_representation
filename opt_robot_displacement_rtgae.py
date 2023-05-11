@@ -222,9 +222,9 @@ def main() -> None:
     args = parser.parse_args()
 
     for run in args.runs:
-        for t_dim_i in args.t_dims:
-            for r_dim_i in args.r_dims:
-                for optrun in args.optruns:
+        for optrun in args.optruns:
+            for t_dim_i in args.t_dims:
+                for r_dim_i in args.r_dims:
                     for bestorworst in [True, False]:
                         do_run(
                             run=run,
