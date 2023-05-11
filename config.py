@@ -74,6 +74,13 @@ CVGRTGAE_OUT = lambda run, t_dim, r_dim: path.join(
     f"evaluation/coverage/t_dim{t_dim}___r_dim{r_dim}/coverage.pickle",
 )
 
+# settings for measure_stress_rtgae.py
+STRESSRTGAE_OUT = lambda run, t_dim, r_dim: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"evaluation/stress/t_dim{t_dim}___r_dim{r_dim}/stress.pickle",
+)
+
 # settings for measure_distance_distortion.py
 MDD_OUT = lambda run, t_dim, r_dim: path.join(
     RESULTS_BASE,
