@@ -225,14 +225,13 @@ def main() -> None:
         for optrun in args.optruns:
             for t_dim_i in args.t_dims:
                 for r_dim_i in args.r_dims:
-                    for bestorworst in [True, False]:
-                        do_run(
-                            run=run,
-                            t_dim_i=t_dim_i,
-                            r_dim_i=r_dim_i,
-                            optrun=optrun,
-                            num_simulators=args.parallelism,
-                        )
+                    do_run(
+                        run=run,
+                        t_dim_i=t_dim_i,
+                        r_dim_i=r_dim_i,
+                        optrun=optrun,
+                        num_simulators=args.parallelism,
+                    )
 
 
 if __name__ == "__main__":
