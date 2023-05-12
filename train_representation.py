@@ -47,7 +47,9 @@ def do_run(run: int, t_dim_i: int, r_dim_i: int) -> None:
     model = rtgae_model.TreeGrammarAutoEncoder(grammar, dim=t_dim, dim_vae=r_dim)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=0.0)
 
-    for _ in range(config.TRAIN_EPOCHS):
+    for epoch in range(config.TRAIN_EPOCHS):
+        logging.info(f"{epoch=}")
+
         optimizer.zero_grad()
         # sample a random tree from the training data
 
@@ -120,8 +122,6 @@ def do_run(run: int, t_dim_i: int, r_dim_i: int) -> None:
         loss = model.compute_loss(
             anchor.nodes, anchor.adj, beta=0.01, sigma_scaling=0.1
         )
-
-        logging.info(loss)
 
         # compute the gradient
         loss.backward()
