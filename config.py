@@ -49,6 +49,9 @@ TRAIN_OUT = lambda run, t_dim, r_dim: path.join(
     f"trained_representation/t_dim{t_dim}___r_dim{r_dim}/model.state",
 )
 TRAIN_EPOCHS = 100000
+TRAIN_BATCH_SIZE = 200
+TRAIN_TRIPLET_LABEL_MARGIN = 0.2
+TRAIN_TRIPLET_FACTOR = 3.0
 
 # settings for generate_evaluation_representation_set.py
 GENEVALREPR_SEED = 34592349873289
