@@ -20,9 +20,12 @@ def main() -> None:
                 r_dim = config.MODEL_R_DIMS[r_dim_i]
                 with open(
                     config.CVGRTGAE_OUT(run=run, t_dim=t_dim, r_dim=r_dim), "rb"
-                ) as f:
-                    coverage = pickle.load(f)
-                    print(f"{coverage=} {t_dim=} {r_dim=} {run=}")
+                ) as fcvg, open(
+                    config.STRESSRTGAE_OUT(run=run, t_dim=t_dim, r_dim=r_dim), "rb"
+                ) as fstress:
+                    coverage = pickle.load(fcvg)
+                    stress = pickle.load(fstress)
+                    print(f"{coverage=} {stress=} {t_dim=} {r_dim=} {run=}")
 
 
 if __name__ == "__main__":
