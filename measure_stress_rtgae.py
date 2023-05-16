@@ -75,10 +75,12 @@ def do_run(run: int, t_dim_i: int, r_dim_i: int, parallelism: int) -> None:
         / sum([dist_repr**2 for dist_repr in reprset.distances])
     )
 
+    dist_pairs = list(zip(reprset.distances, dists_in_solspace))
+
     out_file = config.STRESSRTGAE_OUT(run=run, t_dim=t_dim, r_dim=r_dim)
     pathlib.Path(out_file).parent.mkdir(parents=True, exist_ok=True)
     with open(out_file, "wb") as f:
-        pickle.dump(stress, f)
+        pickle.dump({"stress": stress, "dist_pairs": dist_pairs}, f)
 
 
 def main() -> None:

@@ -24,7 +24,7 @@ def main() -> None:
                     config.STRESSRTGAE_OUT(run=run, t_dim=t_dim, r_dim=r_dim), "rb"
                 ) as fstress:
                     coverage = pickle.load(fcvg)
-                    stress = pickle.load(fstress)
+                    stress = pickle.load(fstress)["stress"]
                     print(f"{coverage=} {stress=} {t_dim=} {r_dim=} {run=}")
 
 

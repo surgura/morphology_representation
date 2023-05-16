@@ -84,11 +84,33 @@ STRESSRTGAE_OUT = lambda run, t_dim, r_dim: path.join(
     f"evaluation/stress/t_dim{t_dim}___r_dim{r_dim}/stress.pickle",
 )
 
-# settings for measure_distance_distortion.py
-MDD_OUT = lambda run, t_dim, r_dim: path.join(
+# settings for plot_measures.py
+PLTMSR_OUT_STRESS_INDIVIDUAL_RUNS = lambda run: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"distance_distortion/t_dim{t_dim}___r_dim{r_dim}/measure.pickle",
+    f"evaluation/stress/stress.svg",
+)
+
+PLTMSR_OUT_COVERAGE_INDIVIDUAL_RUNS = lambda run: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"evaluation/coverage/coverage.svg",
+)
+
+PLTMSR_OUT_STRESS_COMBINED_RUNS = path.join(
+    RESULTS_BASE,
+    f"evaluation/stress.svg",
+)
+
+PLTMSR_OUT_COVERAGE_COMBINED_RUNS = path.join(
+    RESULTS_BASE,
+    f"evaluation/coverage.svg",
+)
+
+PLTMSR_OUT_PAIRS = lambda run, t_dim, r_dim: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"evaluation/stress/scatter___t_dim{t_dim}___r_dim{r_dim}.png",
 )
 
 # settings for select_representations.py
@@ -96,24 +118,6 @@ SREP_OUT = lambda run: path.join(
     RESULTS_BASE,
     f"run{run}",
     f"selected_reps/selection.pickle",
-)
-
-# settings for plot_distance_distortion.py
-PDD_OUT_COMBINED_RUNS = path.join(
-    RESULTS_BASE,
-    f"distance_distortion_plot/distance_distortion.svg",
-)
-
-PDD_OUT_INDIVIDUAL_RUNS = lambda run: path.join(
-    RESULTS_BASE,
-    f"run{run}",
-    f"distance_distortion_plot/distance_distortion.svg",
-)
-
-PDD_OUT_SCATTER = lambda run, t_dim, r_dim: path.join(
-    RESULTS_BASE,
-    f"run{run}",
-    f"distance_distortion_plot/scatter/t_dim{t_dim}___r_dim{r_dim}.svg",
 )
 
 # settings for opt_robot_displacement_*.py
