@@ -43,10 +43,10 @@ MODEL_MAX_MODULES_INCL_EMPTY = (
 
 # settings for train_representation.py
 TRAIN_RNG_SEED = 23875987872
-TRAIN_OUT = lambda run, t_dim, r_dim: path.join(
+TRAIN_OUT = lambda experiment_name, run, t_dim, r_dim: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"trained_representation/t_dim{t_dim}___r_dim{r_dim}/model.state",
+    f"exps/{experiment_name}/trained_representation/t_dim{t_dim}___r_dim{r_dim}/model.state",
 )
 TRAIN_EPOCHS = 100000
 TRAIN_BATCH_SIZE = 200

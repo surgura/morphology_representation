@@ -17,7 +17,7 @@ from rtgae import recursive_tree_grammar_auto_encoder as rtgae_model
 from tree import DirectedTreeNodeform
 
 
-def do_run(run: int, t_dim_i: int, r_dim_i: int) -> None:
+def do_run(experiment_name: str, run: int, t_dim_i: int, r_dim_i: int) -> None:
     logging.basicConfig(
         level=logging.INFO,
         format="[%(asctime)s] [%(levelname)s] [%(module)s] %(message)s",
@@ -116,19 +116,14 @@ def do_run(run: int, t_dim_i: int, r_dim_i: int) -> None:
             + config.TRAIN_TRIPLET_FACTOR * triplet_loss
         )
 
-        anchor = training_set_graph_adjform[
-            rng.integers(0, len(training_set_graph_adjform))
-        ]
-        loss = model.compute_loss(
-            anchor.nodes, anchor.adj, beta=0.01, sigma_scaling=0.1
-        )
-
         # compute the gradient
         loss.backward()
         # perform an optimizer step
         optimizer.step()
 
-    out_dir = config.TRAIN_OUT(run, t_dim, r_dim)
+    out_dir = config.TRAIN_OUT(
+        experiment_name=experiment_name, run=run, t_dim=t_dim, r_dim=r_dim
+    )
     pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
     torch.save(model.state_dict(), out_dir)
 
@@ -140,6 +135,7 @@ def main() -> None:
     )
 
     parser = argparse.ArgumentParser()
+    parser.add_argument("-e", "--experiment_name", type=str, required=True)
     parser.add_argument("-j", "--jobs", type=int, default=1)
     parser.add_argument(
         "-r",
@@ -164,7 +160,12 @@ def main() -> None:
         for t_dim_i in args.t_dims:
             for r_dim_i in args.r_dims:
                 jobs.append(
-                    joblib.delayed(do_run)(run=run, t_dim_i=t_dim_i, r_dim_i=r_dim_i)
+                    joblib.delayed(do_run)(
+                        experiment_name=args.experiment_name,
+                        run=run,
+                        t_dim_i=t_dim_i,
+                        r_dim_i=r_dim_i,
+                    )
                 )
 
     joblib.Parallel(n_jobs=args.jobs)(jobs)
