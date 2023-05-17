@@ -15,6 +15,7 @@ from pqgrams_util import tree_to_pqgrams
 from robot_rgt import make_body_rgt
 from rtgae import recursive_tree_grammar_auto_encoder as rtgae_model
 from tree import DirectedTreeNodeform
+import matplotlib.pyplot as plt
 
 
 def do_run(experiment_name: str, run: int, t_dim_i: int, r_dim_i: int) -> None:
@@ -46,6 +47,8 @@ def do_run(experiment_name: str, run: int, t_dim_i: int, r_dim_i: int) -> None:
 
     model = rtgae_model.TreeGrammarAutoEncoder(grammar, dim=t_dim, dim_vae=r_dim)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=0.0)
+
+    losses: List[float] = []
 
     for epoch in range(config.TRAIN_EPOCHS):
         logging.info(f"{epoch=}")
@@ -102,11 +105,11 @@ def do_run(experiment_name: str, run: int, t_dim_i: int, r_dim_i: int) -> None:
         triplet_loss = model.compute_triplet_loss(
             anchor.nodes,
             anchor.adj,
-            positive.nodes,
-            positive.adj,
             negative.nodes,
             negative.adj,
-            margin=1.0,
+            positive.nodes,
+            positive.adj,
+            margin=0.05,
         )
 
         loss = (
@@ -118,8 +121,16 @@ def do_run(experiment_name: str, run: int, t_dim_i: int, r_dim_i: int) -> None:
 
         # compute the gradient
         loss.backward()
+        losses.append(float(loss))
         # perform an optimizer step
         optimizer.step()
+
+    plt.plot([i for i in range(len(losses))], losses)
+    out_dir = config.TRAIN_OUT_PLOT(
+        experiment_name=experiment_name, run=run, t_dim=t_dim, r_dim=r_dim
+    )
+    pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
+    plt.savefig(out_dir)
 
     out_dir = config.TRAIN_OUT(
         experiment_name=experiment_name, run=run, t_dim=t_dim, r_dim=r_dim

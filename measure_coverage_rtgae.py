@@ -31,7 +31,9 @@ def smallest_distance_multiple(
     return [smallest_distance(tree, compare_to) for tree in trees[slice[0] : slice[1]]]
 
 
-def do_run(run: int, t_dim_i: int, r_dim_i: int, parallelism: int) -> None:
+def do_run(
+    experiment_name: str, run: int, t_dim_i: int, r_dim_i: int, parallelism: int
+) -> None:
     t_dim = config.MODEL_T_DIMS[t_dim_i]
     r_dim = config.MODEL_R_DIMS[r_dim_i]
 
@@ -40,7 +42,11 @@ def do_run(run: int, t_dim_i: int, r_dim_i: int, parallelism: int) -> None:
     grammar = make_body_rgt()
     model = TreeGrammarAutoEncoder(grammar, dim=t_dim, dim_vae=r_dim)
     model.load_state_dict(
-        torch.load(config.TRAIN_OUT(run=run, t_dim=t_dim, r_dim=r_dim))
+        torch.load(
+            config.TRAIN_OUT(
+                experiment_name=experiment_name, run=run, t_dim=t_dim, r_dim=r_dim
+            )
+        )
     )
 
     reprset: EvaluationRepresentationSet[torch.Tensor]
@@ -80,7 +86,9 @@ def do_run(run: int, t_dim_i: int, r_dim_i: int, parallelism: int) -> None:
 
     coverage = float(1.0 - np.average(distances))
 
-    out_file = config.CVGRTGAE_OUT(run=run, t_dim=t_dim, r_dim=r_dim)
+    out_file = config.CVGRTGAE_OUT(
+        experiment_name=experiment_name, run=run, t_dim=t_dim, r_dim=r_dim
+    )
     pathlib.Path(out_file).parent.mkdir(parents=True, exist_ok=True)
     with open(out_file, "wb") as f:
         pickle.dump(coverage, f)
@@ -93,6 +101,7 @@ def main() -> None:
     )
 
     parser = argparse.ArgumentParser()
+    parser.add_argument("-e", "--experiment_name", type=str, required=True)
     parser.add_argument("-p", "--parallelism", type=int, default=1)
     parser.add_argument(
         "-r",
@@ -116,6 +125,7 @@ def main() -> None:
         for t_dim_i in args.t_dims:
             for r_dim_i in args.r_dims:
                 do_run(
+                    experiment_name=args.experiment_name,
                     run=run,
                     t_dim_i=t_dim_i,
                     r_dim_i=r_dim_i,

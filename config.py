@@ -25,16 +25,18 @@ RENDERTRAIN_OUT = lambda run, item_i: path.join(
 )
 
 # settings for representation model
-MODEL_T_DIMS = [1, 2, 4, 8, 16, 32, 64]  # tree encoding dimensionality. 'dim' in rtgae.
-MODEL_R_DIMS = [
-    1,
-    2,
-    4,
-    8,
-    16,
-    32,
-    64,
-]  # representation dimensionality. 'dim_vae' in rtgae.
+# MODEL_T_DIMS = [1, 2, 4, 8, 16, 32, 64]  # tree encoding dimensionality. 'dim' in rtgae.
+# MODEL_R_DIMS = [
+#     1,
+#     2,
+#     4,
+#     8,
+#     16,
+#     32,
+#     64,
+# ]  # representation dimensionality. 'dim_vae' in rtgae.
+MODEL_T_DIMS = [64]  # tree encoding dimensionality. 'dim' in rtgae.
+MODEL_R_DIMS = [64]  # representation dimensionality. 'dim_vae' in rtgae.
 MODEL_MAX_MODULES = 10
 MODEL_REPR_DOMAIN = [-1.0, 1.0]
 MODEL_MAX_MODULES_INCL_EMPTY = (
@@ -52,6 +54,11 @@ TRAIN_EPOCHS = 100000
 TRAIN_BATCH_SIZE = 200
 TRAIN_TRIPLET_LABEL_MARGIN = 0.2
 TRAIN_TRIPLET_FACTOR = 3.0
+TRAIN_OUT_PLOT = lambda experiment_name, run, t_dim, r_dim: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"exps/{experiment_name}/trained_representation/t_dim{t_dim}___r_dim{r_dim}/loss.svg",
+)
 
 # settings for generate_evaluation_representation_set.py
 GENEVALREPR_SEED = 34592349873289
@@ -71,46 +78,46 @@ GENEVALSOL_OUT = lambda run: path.join(
 )
 
 # settings for measure_coverage_rtgae.py
-CVGRTGAE_OUT = lambda run, t_dim, r_dim: path.join(
+CVGRTGAE_OUT = lambda experiment_name, run, t_dim, r_dim: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"evaluation/coverage/t_dim{t_dim}___r_dim{r_dim}/coverage.pickle",
+    f"exps/{experiment_name}/evaluation/coverage/t_dim{t_dim}___r_dim{r_dim}/coverage.pickle",
 )
 
 # settings for measure_stress_rtgae.py
-STRESSRTGAE_OUT = lambda run, t_dim, r_dim: path.join(
+STRESSRTGAE_OUT = lambda experiment_name, run, t_dim, r_dim: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"evaluation/stress/t_dim{t_dim}___r_dim{r_dim}/stress.pickle",
+    f"exps/{experiment_name}/evaluation/stress/t_dim{t_dim}___r_dim{r_dim}/stress.pickle",
 )
 
 # settings for plot_measures.py
-PLTMSR_OUT_STRESS_INDIVIDUAL_RUNS = lambda run: path.join(
+PLTMSR_OUT_STRESS_INDIVIDUAL_RUNS = lambda experiment_name, run: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"evaluation/stress/stress.svg",
+    f"exps/{experiment_name}/evaluation/plots/stress.svg",
 )
 
-PLTMSR_OUT_COVERAGE_INDIVIDUAL_RUNS = lambda run: path.join(
+PLTMSR_OUT_COVERAGE_INDIVIDUAL_RUNS = lambda experiment_name, run: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"evaluation/coverage/coverage.svg",
+    f"exps/{experiment_name}/evaluation/plots/coverage.svg",
 )
 
-PLTMSR_OUT_STRESS_COMBINED_RUNS = path.join(
-    RESULTS_BASE,
-    f"evaluation/stress.svg",
-)
+# PLTMSR_OUT_STRESS_COMBINED_RUNS = path.join(
+#     RESULTS_BASE,
+#     f"evaluation/stress.svg",
+# )
 
-PLTMSR_OUT_COVERAGE_COMBINED_RUNS = path.join(
-    RESULTS_BASE,
-    f"evaluation/coverage.svg",
-)
+# PLTMSR_OUT_COVERAGE_COMBINED_RUNS = path.join(
+#     RESULTS_BASE,
+#     f"evaluation/coverage.svg",
+# )
 
-PLTMSR_OUT_PAIRS = lambda run, t_dim, r_dim: path.join(
+PLTMSR_OUT_PAIRS = lambda experiment_name, run, t_dim, r_dim: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"evaluation/stress/scatter___t_dim{t_dim}___r_dim{r_dim}.png",
+    f"exps/{experiment_name}/evaluation/plots/scatter___t_dim{t_dim}___r_dim{r_dim}.png",
 )
 
 # settings for select_representations.py
