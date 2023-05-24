@@ -3,7 +3,7 @@ import hashlib
 import logging
 import pathlib
 import pickle
-from typing import List, cast
+from typing import List, Tuple
 
 import joblib
 import numpy as np
@@ -11,11 +11,43 @@ import torch
 
 import config
 import indices_range
-from pqgrams_util import tree_to_pqgrams
 from robot_rgt import make_body_rgt
 from rtgae import recursive_tree_grammar_auto_encoder as rtgae_model
-from tree import DirectedTreeNodeform
 import matplotlib.pyplot as plt
+import pandas
+from train_set import TrainSet
+from torch.utils.data import DataLoader
+from pqgrams import Profile
+from tree import DirectedTreeNodeform, GraphAdjform
+
+
+def train_epoch(
+    model: rtgae_model.TreeGrammarAutoEncoder,
+    train_loader: DataLoader[Tuple[DirectedTreeNodeform, GraphAdjform, Profile]],
+    optimizer: torch.optim.Optimizer,
+):
+    train_loss = []
+    for batch in train_loader:
+        graphs = [GraphAdjform(graph["nodes"], graph["adj"]) for graph in batch]
+        losses = [
+            model.compute_loss(graph.nodes, graph.adj, beta=0.01, sigma_scaling=0.1)
+            for graph in graphs
+        ]
+        loss = sum(losses[1:], losses[0])
+
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        train_loss.append(loss.detach().numpy())
+    return float(np.mean(train_loss))
+
+
+def collate(data):
+    _, graph_adj_forms, _ = zip(*data)
+    return [
+        {"nodes": graph_adj_form.nodes, "adj": graph_adj_form.adj}
+        for graph_adj_form in graph_adj_forms
+    ]
 
 
 def do_run(experiment_name: str, run: int, t_dim_i: int, r_dim_i: int) -> None:
@@ -35,97 +67,119 @@ def do_run(experiment_name: str, run: int, t_dim_i: int, r_dim_i: int) -> None:
     )
     rng = np.random.Generator(np.random.PCG64(rng_seed))
 
+    torch.manual_seed(rng.integers(2e16))
+
     grammar = make_body_rgt()
-
-    training_set: List[DirectedTreeNodeform]
-    with open(config.GENTRAIN_OUT(run), "rb") as file:
-        training_set = pickle.load(file)
-    training_set_graph_adjform = [tree.to_graph_adjform() for tree in training_set]
-    training_set_pqgrams = [
-        tree_to_pqgrams(tree) for tree in training_set_graph_adjform
-    ]
-
     model = rtgae_model.TreeGrammarAutoEncoder(grammar, dim=t_dim, dim_vae=r_dim)
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=0.0)
+    model.train()
 
-    losses: List[float] = []
+    train_set = TrainSet(run=run)
+    train_loader = DataLoader(
+        dataset=train_set,
+        batch_size=config.TRAIN_BATCH_SIZE,
+        shuffle=True,
+        collate_fn=collate,
+    )
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-05)
 
+    losses = []
     for epoch in range(config.TRAIN_EPOCHS):
-        logging.info(f"{epoch=}")
-
-        optimizer.zero_grad()
-        # sample a random tree from the training data
-
-        all_indices = [
-            int(i)
-            for i in rng.choice(
-                len(training_set), config.TRAIN_BATCH_SIZE, replace=False
-            )
-        ]
-        anchor_index = all_indices[0]
-        other_indices = all_indices[1:]
-        distances = np.array(
-            [
-                training_set_pqgrams[anchor_index].edit_distance(
-                    training_set_pqgrams[other_index]
-                )
-                for other_index in other_indices
-            ]
-        )
-        mask_smaller = distances < config.TRAIN_TRIPLET_LABEL_MARGIN
-        mask_larger = distances > config.TRAIN_TRIPLET_LABEL_MARGIN
-        if (not mask_smaller.any()) or (not mask_larger.any()):
-            continue
-        positive_index = other_indices[np.argmax(mask_smaller * distances)]
-        negative_index = other_indices[np.argmin(mask_larger * distances)]
-
-        anchor = training_set_graph_adjform[anchor_index]
-        positive = training_set_graph_adjform[positive_index]
-        negative = training_set_graph_adjform[negative_index]
-
-        anchor_loss = model.compute_loss(
-            anchor.nodes,
-            anchor.adj,
-            beta=0.01,
-            sigma_scaling=0.1,
-        )
-        positive_loss = model.compute_loss(
-            positive.nodes,
-            positive.adj,
-            beta=0.01,
-            sigma_scaling=0.1,
-        )
-        negative_loss = model.compute_loss(
-            negative.nodes,
-            negative.adj,
-            beta=0.01,
-            sigma_scaling=0.1,
-        )
-
-        triplet_loss = model.compute_triplet_loss(
-            anchor.nodes,
-            anchor.adj,
-            negative.nodes,
-            negative.adj,
-            positive.nodes,
-            positive.adj,
-            margin=0.05,
-        )
-
         loss = (
-            anchor_loss
-            + positive_loss
-            + negative_loss
-            + config.TRAIN_TRIPLET_FACTOR * triplet_loss
+            train_epoch(model=model, train_loader=train_loader, optimizer=optimizer)
+            / config.TRAIN_BATCH_SIZE
         )
+        print(f"{epoch} : {loss}")
+        losses.append(loss)
 
-        # compute the gradient
-        loss.backward()
-        losses.append(float(loss))
-        # perform an optimizer step
-        optimizer.step()
+    # losses: List[float] = []
 
-    plt.plot([i for i in range(len(losses))], losses)
+    # for epoch in range(config.TRAIN_EPOCHS):
+    #     logging.info(f"{epoch=}")
+
+    #     optimizer.zero_grad()
+    #     # sample a random tree from the training data
+
+    #     all_indices = [
+    #         int(i)
+    #         for i in rng.choice(
+    #             len(training_set), config.TRAIN_BATCH_SIZE, replace=False
+    #         )
+    #     ]
+    #     anchor_index = all_indices[0]
+    #     other_indices = all_indices[1:]
+    #     distances = np.array(
+    #         [
+    #             training_set_pqgrams[anchor_index].edit_distance(
+    #                 training_set_pqgrams[other_index]
+    #             )
+    #             for other_index in other_indices
+    #         ]
+    #     )
+    #     mask_smaller = distances < config.TRAIN_TRIPLET_LABEL_MARGIN
+    #     mask_larger = distances > config.TRAIN_TRIPLET_LABEL_MARGIN
+    #     if (not mask_smaller.any()) or (not mask_larger.any()):
+    #         continue
+    #     positive_index = other_indices[np.argmax(mask_smaller * distances)]
+    #     negative_index = other_indices[np.argmin(mask_larger * distances)]
+
+    #     anchor = training_set_graph_adjform[anchor_index]
+    #     positive = training_set_graph_adjform[positive_index]
+    #     negative = training_set_graph_adjform[negative_index]
+
+    #     anchor_loss = model.compute_loss(
+    #         anchor.nodes,
+    #         anchor.adj,
+    #         beta=0.01,
+    #         sigma_scaling=0.1,
+    #     )
+    #     positive_loss = model.compute_loss(
+    #         positive.nodes,
+    #         positive.adj,
+    #         beta=0.01,
+    #         sigma_scaling=0.1,
+    #     )
+    #     negative_loss = model.compute_loss(
+    #         negative.nodes,
+    #         negative.adj,
+    #         beta=0.01,
+    #         sigma_scaling=0.1,
+    #     )
+
+    #     # triplet_loss = model.compute_triplet_loss(
+    #     #     anchor.nodes,
+    #     #     anchor.adj,
+    #     #     negative.nodes,
+    #     #     negative.adj,
+    #     #     positive.nodes,
+    #     #     positive.adj,
+    #     #     margin=0.05,
+    #     # )
+
+    #     loss = (
+    #         anchor_loss
+    #         + positive_loss
+    #         + negative_loss
+    #         # + config.TRAIN_TRIPLET_FACTOR * triplet_loss
+    #     )
+
+    #     # compute the gradient
+    #     loss.backward()
+    #     losses.append(float(loss))
+    #     # perform an optimizer step
+    #     optimizer.step()
+
+    out_dir = config.TRAIN_OUT_LOSS(
+        experiment_name=experiment_name, run=run, t_dim=t_dim, r_dim=r_dim
+    )
+    pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
+    with open(out_dir, "wb") as f:
+        pickle.dump(losses, f)
+
+    df = pandas.DataFrame.from_records(
+        zip([i for i in range(len(losses))], losses), columns=("epoch", "loss")
+    )
+    df.plot()
+    # plt.plot([i for i in range(len(losses))], losses)
     out_dir = config.TRAIN_OUT_PLOT(
         experiment_name=experiment_name, run=run, t_dim=t_dim, r_dim=r_dim
     )
