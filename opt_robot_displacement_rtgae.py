@@ -83,17 +83,30 @@ def select_survivors(
 
 
 def load_body_model(
-    run: int, t_dim: int, r_dim: int, grammar: tree_grammar.TreeGrammar
+    experiment_name: str,
+    run: int,
+    t_dim: int,
+    r_dim: int,
+    grammar: tree_grammar.TreeGrammar,
 ) -> TreeGrammarAutoEncoder:
     model = TreeGrammarAutoEncoder(grammar, dim=t_dim, dim_vae=r_dim)
     model.load_state_dict(
-        torch.load(config.TRAIN_OUT(run=run, t_dim=t_dim, r_dim=r_dim))
+        torch.load(
+            config.TRAIN_OUT(
+                experiment_name=experiment_name, run=run, t_dim=t_dim, r_dim=r_dim
+            )
+        )
     )
     return model
 
 
 def do_run(
-    run: int, t_dim_i: int, r_dim_i: int, optrun: int, num_simulators: int
+    experiment_name: str,
+    run: int,
+    t_dim_i: int,
+    r_dim_i: int,
+    optrun: int,
+    num_simulators: int,
 ) -> None:
     t_dim = config.MODEL_T_DIMS[t_dim_i]
     r_dim = config.MODEL_R_DIMS[r_dim_i]
@@ -109,7 +122,13 @@ def do_run(
     logging.info(f"Running run{run} t_dim{t_dim} r_dim{r_dim} optrun{optrun}")
 
     grammar = make_body_rgt()
-    body_model = load_body_model(run=run, t_dim=t_dim, r_dim=r_dim, grammar=grammar)
+    body_model = load_body_model(
+        experiment_name=experiment_name,
+        run=run,
+        t_dim=t_dim,
+        r_dim=r_dim,
+        grammar=grammar,
+    )
 
     evaluator = Evaluator(True, num_simulators)
 
@@ -117,7 +136,14 @@ def do_run(
     innov_db_brain = multineat.InnovationDatabase()
 
     dbengine = open_database_sqlite(
-        config.OPTRTGAE_OUT(run, optrun, t_dim, r_dim), create=True
+        config.OPTRTGAE_OUT(
+            experiment_name=experiment_name,
+            run=run,
+            optrun=optrun,
+            t_dim=t_dim,
+            r_dim=r_dim,
+        ),
+        create=True,
     )
     model.Base.metadata.create_all(dbengine)
 
@@ -197,6 +223,7 @@ def main() -> None:
     )
 
     parser = argparse.ArgumentParser()
+    parser.add_argument("-e", "--experiment_name", type=str, required=True)
     parser.add_argument(
         "-r",
         "--runs",
@@ -226,6 +253,7 @@ def main() -> None:
             for t_dim_i in args.t_dims:
                 for r_dim_i in args.r_dims:
                     do_run(
+                        experiment_name=args.experiment_name,
                         run=run,
                         t_dim_i=t_dim_i,
                         r_dim_i=r_dim_i,

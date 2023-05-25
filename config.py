@@ -160,10 +160,10 @@ OPTRTGAE_RNG_SEED = 986576245246
 #     "best" if bestorworst else "worst",
 #     f"optrun{optrun}",
 # )
-OPTRTGAE_OUT = lambda run, optrun, t_dim, r_dim: path.join(
+OPTRTGAE_OUT = lambda experiment_name, run, optrun, t_dim, r_dim: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"opt_rtgae",
+    f"exps/{experiment_name}/opt_rtgae",
     f"t_dim{t_dim}___r_dim{r_dim}___optrun{optrun}",
 )
 OPTRTGAE_MUTATE_SIGMA = 0.1
