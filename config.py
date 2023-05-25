@@ -185,3 +185,10 @@ PLOPT_OUT_MEAN_OPTRUNS_RTGAE = lambda run, t_dim, r_dim: path.join(
     f"run{run}",
     f"opt_fitness_plot/rtgae_t_dim{t_dim}___r_dim{r_dim}___mean.svg",
 )
+
+# settings for sample_representations.py
+SAMPLEREPR_OUT_CENTER = lambda experiment_name, run, t_dim, r_dim, i: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"exps/{experiment_name}/evaluation/samples/t_dim{t_dim}___r_dim{r_dim}/{i}.png",
+)

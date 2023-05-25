@@ -111,20 +111,20 @@ def main() -> None:
         df_stress = pandas.DataFrame.from_records(
             run_records_stress, columns=["t_dim", "r_dim", "stress"]
         )
-        # plot_measure(
-        #     df_coverage,
-        #     "coverage",
-        #     config.PLTMSR_OUT_COVERAGE_INDIVIDUAL_RUNS(
-        #         experiment_name=experiment_name, run=run
-        #     ),
-        # )
-        # plot_measure(
-        #     df_stress,
-        #     "stress",
-        #     config.PLTMSR_OUT_STRESS_INDIVIDUAL_RUNS(
-        #         experiment_name=experiment_name, run=run
-        #     ),
-        # )
+        plot_measure(
+            df_coverage,
+            "coverage",
+            config.PLTMSR_OUT_COVERAGE_INDIVIDUAL_RUNS(
+                experiment_name=experiment_name, run=run
+            ),
+        )
+        plot_measure(
+            df_stress,
+            "stress",
+            config.PLTMSR_OUT_STRESS_INDIVIDUAL_RUNS(
+                experiment_name=experiment_name, run=run
+            ),
+        )
 
     df_coverage = pandas.DataFrame.from_records(
         all_records_coverage, columns=["run", "t_dim", "r_dim", "coverage"]
