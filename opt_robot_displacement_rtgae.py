@@ -18,12 +18,9 @@ from rtgae import tree_grammar
 from rtgae.recursive_tree_grammar_auto_encoder import TreeGrammarAutoEncoder
 import brain_optimizer
 from revolve2.core.modular_robot import ModularRobot
-from revolve2.actor_controllers.cpg import CpgNetworkStructure
-from revolve2.core.modular_robot.brains import (
-    BrainCpgNetworkStatic,
-)
 import math
 from robot_to_actor_cpg import robot_to_actor_cpg
+from make_brain import make_brain
 
 
 def select_parents(
@@ -106,22 +103,6 @@ def load_body_model(
     return model
 
 
-def make_brain(
-    cpg_network_structure: CpgNetworkStructure, params: model.BrainParameters
-) -> BrainCpgNetworkStatic:
-    initial_state = cpg_network_structure.make_uniform_state(0.5 * math.pi / 2.0)
-    weight_matrix = cpg_network_structure.make_connection_weights_matrix_from_params(
-        list(params.parameters)
-    )
-    dof_ranges = cpg_network_structure.make_uniform_dof_ranges(1.0)
-    return BrainCpgNetworkStatic(
-        initial_state,
-        cpg_network_structure.num_cpgs,
-        weight_matrix,
-        dof_ranges,
-    )
-
-
 def do_run(
     experiment_name: str,
     run: int,
@@ -177,10 +158,13 @@ def do_run(
     logging.info("Evaluating initial population.")
     initial_bodies = [genotype.develop(body_model) for genotype in initial_genotypes]
     initial_optimized_brain_parameters = [
-        brain_optimizer.optimize(rng, body) for body in initial_bodies
+        model.BrainParameters(brain_optimizer.optimize(evaluator, rng, body))
+        for body in initial_bodies
     ]
     initial_modular_robots = [
-        ModularRobot(body, make_brain(robot_to_actor_cpg(body)[1], brain_genotype))
+        ModularRobot(
+            body, make_brain(robot_to_actor_cpg(body)[1], brain_genotype.parameters)
+        )
         for body, brain_genotype in zip(
             initial_bodies, initial_optimized_brain_parameters
         )
@@ -224,10 +208,13 @@ def do_run(
             genotype.develop(body_model) for genotype in offspring_genotypes
         ]
         offspring_optimized_brain_genotypes = [
-            brain_optimizer.optimize(rng, body) for body in offspring_bodies
+            model.BrainParameters(brain_optimizer.optimize(evaluator, rng, body))
+            for body in offspring_bodies
         ]
         offspring_modular_robots = [
-            ModularRobot(body, make_brain(robot_to_actor_cpg(body)[1], brain_genotype))
+            ModularRobot(
+                body, make_brain(robot_to_actor_cpg(body)[1], brain_genotype.parameters)
+            )
             for body, brain_genotype in zip(
                 offspring_bodies, offspring_optimized_brain_genotypes
             )

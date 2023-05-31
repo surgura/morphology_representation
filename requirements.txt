@@ -3,3 +3,4 @@ torch>=1.13.1
 joblib>=1.2.0
 pycairo>=1.23.0
 matplotlib>=3.7.1
+cma=3.3.0

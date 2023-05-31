@@ -137,13 +137,16 @@ ROBOPT_RUNS = 5
 
 ROBOPT_NUM_INITIAL_MUTATIONS = 500
 
-ROBOPT_POPULATION_SIZE = 100
-ROBOPT_OFFSPRING_SIZE = 100
-ROBOPT_NUM_GENERATIONS = 100
+ROBOPT_POPULATION_SIZE = 2
+ROBOPT_OFFSPRING_SIZE = 2
+ROBOPT_NUM_GENERATIONS = 5
 
 ROBOPT_SIMULATION_TIME = 30
 ROBOPT_SAMPLING_FREQUENCY = 5
 ROBOPT_CONTROL_FREQUENCY = 60
+
+ROBOPT_BRAIN_INITIAL_STD = 0.5
+ROBOPT_BRAIN_NUM_GENERATIONS = 2
 
 # settings for opt_robot_displacement_benchmark.py
 OPTBENCH_RNG_SEED = 9376349871923
@@ -172,10 +175,10 @@ OPTRTGAE_MUTATE_SIGMA = 0.1
 PLOPT_OUT_INDIVIDUAL_OPTRUNS_BENCH = lambda run, optrun: path.join(
     RESULTS_BASE, f"run{run}", f"opt_fitness_plot/bench_optrun{optrun}.svg"
 )
-PLOPT_OUT_INDIVIDUAL_OPTRUNS_RTGAE = lambda run, optrun, t_dim, r_dim: path.join(
+PLOPT_OUT_INDIVIDUAL_OPTRUNS_RTGAE = lambda experiment_name, run, optrun, t_dim, r_dim: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"opt_fitness_plot/rtgae_t_dim{t_dim}___r_dim{r_dim}___optrun{optrun}.svg",
+    f"exps/{experiment_name}/opt_fitness_plot/rtgae_t_dim{t_dim}___r_dim{r_dim}___optrun{optrun}.svg",
 )
 PLOPT_OUT_MEAN_OPTRUNS_BENCH = lambda run: path.join(
     RESULTS_BASE, f"run{run}", f"opt_fitness_plot/bench_mean.svg"
