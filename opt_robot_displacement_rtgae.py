@@ -1,10 +1,8 @@
 import argparse
 import hashlib
 import logging
-import pickle
 from typing import List, Tuple
 
-import multineat
 import numpy as np
 import torch
 from sqlalchemy.orm import Session
@@ -18,7 +16,14 @@ from revolve2.core.optimization.ea.generic_ea import population_management, sele
 from robot_rgt import make_body_rgt
 from rtgae import tree_grammar
 from rtgae.recursive_tree_grammar_auto_encoder import TreeGrammarAutoEncoder
-from select_representations import Measure
+import brain_optimizer
+from revolve2.core.modular_robot import ModularRobot
+from revolve2.actor_controllers.cpg import CpgNetworkStructure
+from revolve2.core.modular_robot.brains import (
+    BrainCpgNetworkStatic,
+)
+import math
+from robot_to_actor_cpg import robot_to_actor_cpg
 
 
 def select_parents(
@@ -39,11 +44,10 @@ def select_parents(
 
 def mate(
     rng: np.random.Generator,
-    innov_db_brain: multineat.InnovationDatabase,
-    parent1: model.Genotype,
-    parent2: model.Genotype,
-) -> model.Genotype:
-    return model.Genotype.crossover(parent1, parent2, rng).mutate(innov_db_brain, rng)
+    parent1: model.BodyRepresentation,
+    parent2: model.BodyRepresentation,
+) -> model.BodyRepresentation:
+    return model.BodyRepresentation.crossover(parent1, parent2, rng).mutate(rng)
 
 
 def select_survivors(
@@ -69,6 +73,7 @@ def select_survivors(
             model.Individual(
                 original_population.individuals[i].genotype,
                 original_population.individuals[i].fitness,
+                original_population.individuals[i].brain_parameters,
             )
             for i in original_survivors
         ]
@@ -76,6 +81,7 @@ def select_survivors(
             model.Individual(
                 offspring_population.individuals[i].genotype,
                 offspring_population.individuals[i].fitness,
+                offspring_population.individuals[i].brain_parameters,
             )
             for i in offspring_survivors
         ]
@@ -98,6 +104,22 @@ def load_body_model(
         )
     )
     return model
+
+
+def make_brain(
+    cpg_network_structure: CpgNetworkStructure, params: model.BrainParameters
+) -> BrainCpgNetworkStatic:
+    initial_state = cpg_network_structure.make_uniform_state(0.5 * math.pi / 2.0)
+    weight_matrix = cpg_network_structure.make_connection_weights_matrix_from_params(
+        list(params.parameters)
+    )
+    dof_ranges = cpg_network_structure.make_uniform_dof_ranges(1.0)
+    return BrainCpgNetworkStatic(
+        initial_state,
+        cpg_network_structure.num_cpgs,
+        weight_matrix,
+        dof_ranges,
+    )
 
 
 def do_run(
@@ -132,9 +154,6 @@ def do_run(
 
     evaluator = Evaluator(True, num_simulators)
 
-    # multineat innovation databases
-    innov_db_brain = multineat.InnovationDatabase()
-
     dbengine = open_database_sqlite(
         config.OPTRTGAE_OUT(
             experiment_name=experiment_name,
@@ -149,22 +168,30 @@ def do_run(
 
     logging.info("Generating initial population.")
     initial_genotypes = [
-        model.Genotype.random(
-            innov_db_brain=innov_db_brain,
+        model.BodyRepresentation.random(
             rng=rng,
-            num_initial_mutations=config.ROBOPT_NUM_INITIAL_MUTATIONS,
-            body_genotype_size=r_dim,
+            representation_size=r_dim,
         )
         for _ in range(config.ROBOPT_POPULATION_SIZE)
     ]
     logging.info("Evaluating initial population.")
-    initial_fitnesses = evaluator.evaluate(
-        [genotype.develop(body_model) for genotype in initial_genotypes]
-    )
+    initial_bodies = [genotype.develop(body_model) for genotype in initial_genotypes]
+    initial_optimized_brain_parameters = [
+        brain_optimizer.optimize(rng, body) for body in initial_bodies
+    ]
+    initial_modular_robots = [
+        ModularRobot(body, make_brain(robot_to_actor_cpg(body)[1], brain_genotype))
+        for body, brain_genotype in zip(
+            initial_bodies, initial_optimized_brain_parameters
+        )
+    ]
+    initial_fitnesses = evaluator.evaluate([robot for robot in initial_modular_robots])
     population = model.Population(
         [
-            model.Individual(genotype, fitness)
-            for genotype, fitness in zip(initial_genotypes, initial_fitnesses)
+            model.Individual(genotype, fitness, initial_optimized_brain_parameter)
+            for genotype, fitness, initial_optimized_brain_parameter in zip(
+                initial_genotypes, initial_fitnesses, initial_optimized_brain_parameters
+            )
         ]
     )
     generation = model.Generation(
@@ -184,22 +211,39 @@ def do_run(
         parents = select_parents(
             rng, generation.population, config.ROBOPT_OFFSPRING_SIZE
         )
-        offspring_genotypes = [
+        offspring_genotypes: List[model.BodyRepresentation] = [
             mate(
                 rng,
-                innov_db_brain,
                 generation.population.individuals[parent1_i].genotype,
                 generation.population.individuals[parent2_i].genotype,
             )
             for parent1_i, parent2_i in parents
         ]
+
+        offspring_bodies = [
+            genotype.develop(body_model) for genotype in offspring_genotypes
+        ]
+        offspring_optimized_brain_genotypes = [
+            brain_optimizer.optimize(rng, body) for body in offspring_bodies
+        ]
+        offspring_modular_robots = [
+            ModularRobot(body, make_brain(robot_to_actor_cpg(body)[1], brain_genotype))
+            for body, brain_genotype in zip(
+                offspring_bodies, offspring_optimized_brain_genotypes
+            )
+        ]
+
         offspring_fitnesses = evaluator.evaluate(
-            [genotype.develop(body_model) for genotype in offspring_genotypes]
+            [robot for robot in offspring_modular_robots]
         )
         offspring_population = model.Population(
             [
-                model.Individual(genotype, fitness)
-                for genotype, fitness in zip(offspring_genotypes, offspring_fitnesses)
+                model.Individual(genotype, fitness, initial_optimized_brain_parameter)
+                for genotype, fitness, initial_optimized_brain_parameter in zip(
+                    offspring_genotypes,
+                    offspring_fitnesses,
+                    initial_optimized_brain_parameters,
+                )
             ]
         )
         survived_population = select_survivors(

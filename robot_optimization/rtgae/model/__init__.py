@@ -1,7 +1,16 @@
 from .base import Base
 from .generation import Generation
-from .genotype import Genotype
+from .body_representation import BodyRepresentation
 from .individual import Individual
 from .population import Population
+from .brain_parameters import BrainParameters
 
-__all__ = ["Base", "Genotype", "Individual", "Generation", "Population"]
+__all__ = [
+    "Base",
+    "Genotype",
+    "Individual",
+    "Generation",
+    "Population",
+    "BodyRepresentation",
+    "BrainParameters",
+]
