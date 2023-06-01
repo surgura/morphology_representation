@@ -109,7 +109,7 @@ def do_run(
     t_dim_i: int,
     r_dim_i: int,
     optrun: int,
-    num_simulators: int,
+    parallelism: int,
 ) -> None:
     t_dim = config.MODEL_T_DIMS[t_dim_i]
     r_dim = config.MODEL_R_DIMS[r_dim_i]
@@ -133,7 +133,7 @@ def do_run(
         grammar=grammar,
     )
 
-    evaluator = Evaluator(True, num_simulators)
+    evaluator = Evaluator(True, parallelism)
 
     dbengine = open_database_sqlite(
         config.OPTRTGAE_OUT(
@@ -158,8 +158,10 @@ def do_run(
     logging.info("Evaluating initial population.")
     initial_bodies = [genotype.develop(body_model) for genotype in initial_genotypes]
     initial_optimized_brain_parameters = [
-        model.BrainParameters(brain_optimizer.optimize(evaluator, rng, body))
-        for body in initial_bodies
+        model.BrainParameters(b)
+        for b in brain_optimizer.optimize_multiple_parallel(
+            evaluator, rng, initial_bodies, parallelism=(parallelism // 5)
+        )
     ]
     initial_modular_robots = [
         ModularRobot(
@@ -208,8 +210,10 @@ def do_run(
             genotype.develop(body_model) for genotype in offspring_genotypes
         ]
         offspring_optimized_brain_genotypes = [
-            model.BrainParameters(brain_optimizer.optimize(evaluator, rng, body))
-            for body in offspring_bodies
+            model.BrainParameters(b)
+            for b in brain_optimizer.optimize_multiple_parallel(
+                evaluator, rng, offspring_bodies, parallelism=(parallelism // 5)
+            )
         ]
         offspring_modular_robots = [
             ModularRobot(
@@ -289,7 +293,7 @@ def main() -> None:
                         t_dim_i=t_dim_i,
                         r_dim_i=r_dim_i,
                         optrun=optrun,
-                        num_simulators=args.parallelism,
+                        parallelism=args.parallelism,
                     )
 
 

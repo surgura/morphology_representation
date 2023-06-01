@@ -7,7 +7,40 @@ import logging
 from evaluator import Evaluator
 from revolve2.core.modular_robot import ModularRobot
 from make_brain import make_brain
-from typing import Tuple
+from typing import Tuple, List
+import joblib
+
+
+def optimize_multiple_parallel(
+    evaluator: Evaluator, rng: np.random.Generator, bodies: List[Body], parallelism: int
+) -> List[Tuple[float, ...]]:
+    slices = [
+        (
+            job_i * len(bodies) // parallelism,
+            (job_i + 1) * len(bodies) // parallelism,
+        )
+        for job_i in range(parallelism)
+    ]
+    slices[-1] = (slices[-1][0], len(bodies))
+    rngs = [
+        np.random.Generator(np.random.PCG64(rng.integers(0, 2**15))) for _ in slices
+    ]
+    results: List[List[Tuple[float, ...]]] = joblib.Parallel(n_jobs=parallelism)(
+        [
+            joblib.delayed(optimize_multiple)(evaluator, rng, bodies, slice)
+            for slice, rng in zip(slices, rngs)
+        ]
+    )
+    return sum(results, [])
+
+
+def optimize_multiple(
+    evaluator: Evaluator,
+    rng: np.random.Generator,
+    bodies: List[Body],
+    slice: Tuple[int, int],
+) -> List[Tuple[float, ...]]:
+    return [optimize(evaluator, rng, body) for body in bodies[slice[0] : slice[1]]]
 
 
 def optimize(
