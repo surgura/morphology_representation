@@ -13,6 +13,10 @@ import robot_optimization.benchmark.model as model
 from evaluator import Evaluator
 from revolve2.core.database import open_database_sqlite
 from revolve2.core.optimization.ea.generic_ea import population_management, selection
+import brain_optimizer
+from revolve2.core.modular_robot import ModularRobot
+from make_brain import make_brain
+from robot_to_actor_cpg import robot_to_actor_cpg
 
 
 def select_parents(
@@ -34,12 +38,11 @@ def select_parents(
 def mate(
     rng: np.random.Generator,
     innov_db_body: multineat.InnovationDatabase,
-    innov_db_brain: multineat.InnovationDatabase,
-    parent1: model.Genotype,
-    parent2: model.Genotype,
-) -> model.Genotype:
-    return model.Genotype.crossover(parent1, parent2, rng).mutate(
-        innov_db_body, innov_db_brain, rng
+    parent1: model.BodyGenotype,
+    parent2: model.BodyGenotype,
+) -> model.BodyGenotype:
+    return model.BodyGenotype.crossover(parent1, parent2, rng).mutate(
+        innov_db_body, rng
     )
 
 
@@ -66,6 +69,7 @@ def select_survivors(
             model.Individual(
                 original_population.individuals[i].genotype,
                 original_population.individuals[i].fitness,
+                original_population.individuals[i].brain_parameters,
             )
             for i in original_survivors
         ]
@@ -73,13 +77,14 @@ def select_survivors(
             model.Individual(
                 offspring_population.individuals[i].genotype,
                 offspring_population.individuals[i].fitness,
+                offspring_population.individuals[i].brain_parameters,
             )
             for i in offspring_survivors
         ]
     )
 
 
-def do_run(run: int, optrun: int, num_simulators: int) -> None:
+def do_run(experiment_name: str, run: int, optrun: int, parallelism: int) -> None:
     rng_seed = int(
         hashlib.sha256(
             f"opt_root_displacement_benchmark_seed{config.OPTBENCH_RNG_SEED}_run{run}_optrun{optrun}".encode()
@@ -88,33 +93,48 @@ def do_run(run: int, optrun: int, num_simulators: int) -> None:
     )
     rng = np.random.Generator(np.random.PCG64(rng_seed))
 
-    evaluator = Evaluator(True, num_simulators)
+    evaluator = Evaluator(True, parallelism)
 
     # multineat innovation databases
     innov_db_body = multineat.InnovationDatabase()
-    innov_db_brain = multineat.InnovationDatabase()
 
-    dbengine = open_database_sqlite(config.OPTBENCH_OUT(run, optrun), create=True)
+    dbengine = open_database_sqlite(
+        config.OPTBENCH_OUT(experiment_name=experiment_name, run=run, optrun=optrun),
+        create=True,
+    )
     model.Base.metadata.create_all(dbengine)
 
     logging.info("Generating initial population.")
     initial_genotypes = [
-        model.Genotype.random(
+        model.BodyGenotype.random(
             innov_db_body=innov_db_body,
-            innov_db_brain=innov_db_brain,
             rng=rng,
-            num_initial_mutations=config.ROBOPT_NUM_INITIAL_MUTATIONS,
         )
         for _ in range(config.ROBOPT_POPULATION_SIZE)
     ]
     logging.info("Evaluating initial population.")
-    initial_fitnesses = evaluator.evaluate(
-        [genotype.develop() for genotype in initial_genotypes]
-    )
+    initial_bodies = [genotype.develop() for genotype in initial_genotypes]
+    initial_optimized_brain_parameters = [
+        model.BrainParameters(b)
+        for b in brain_optimizer.optimize_multiple_parallel(
+            evaluator, rng, initial_bodies, parallelism=(parallelism // 5)
+        )
+    ]
+    initial_modular_robots = [
+        ModularRobot(
+            body, make_brain(robot_to_actor_cpg(body)[1], brain_genotype.parameters)
+        )
+        for body, brain_genotype in zip(
+            initial_bodies, initial_optimized_brain_parameters
+        )
+    ]
+    initial_fitnesses = evaluator.evaluate([robot for robot in initial_modular_robots])
     population = model.Population(
         [
-            model.Individual(genotype, fitness)
-            for genotype, fitness in zip(initial_genotypes, initial_fitnesses)
+            model.Individual(genotype, fitness, initial_optimized_brain_parameter)
+            for genotype, fitness, initial_optimized_brain_parameter in zip(
+                initial_genotypes, initial_fitnesses, initial_optimized_brain_parameters
+            )
         ]
     )
     generation = model.Generation(
@@ -138,19 +158,38 @@ def do_run(run: int, optrun: int, num_simulators: int) -> None:
             mate(
                 rng,
                 innov_db_body,
-                innov_db_brain,
                 generation.population.individuals[parent1_i].genotype,
                 generation.population.individuals[parent2_i].genotype,
             )
             for parent1_i, parent2_i in parents
         ]
+        offspring_bodies = [genotype.develop() for genotype in offspring_genotypes]
+        offspring_optimized_brain_genotypes = [
+            model.BrainParameters(b)
+            for b in brain_optimizer.optimize_multiple_parallel(
+                evaluator, rng, offspring_bodies, parallelism=(parallelism // 5)
+            )
+        ]
+        offspring_modular_robots = [
+            ModularRobot(
+                body, make_brain(robot_to_actor_cpg(body)[1], brain_genotype.parameters)
+            )
+            for body, brain_genotype in zip(
+                offspring_bodies, offspring_optimized_brain_genotypes
+            )
+        ]
+
         offspring_fitnesses = evaluator.evaluate(
-            [genotype.develop() for genotype in offspring_genotypes]
+            [robot for robot in offspring_modular_robots]
         )
         offspring_population = model.Population(
             [
-                model.Individual(genotype, fitness)
-                for genotype, fitness in zip(offspring_genotypes, offspring_fitnesses)
+                model.Individual(genotype, fitness, initial_optimized_brain_parameter)
+                for genotype, fitness, initial_optimized_brain_parameter in zip(
+                    offspring_genotypes,
+                    offspring_fitnesses,
+                    initial_optimized_brain_parameters,
+                )
             ]
         )
         survived_population = select_survivors(
@@ -174,6 +213,7 @@ def main() -> None:
     )
 
     parser = argparse.ArgumentParser()
+    parser.add_argument("-e", "--experiment_name", type=str, required=True)
     parser.add_argument(
         "-r",
         "--runs",
@@ -190,7 +230,12 @@ def main() -> None:
 
     for run in args.runs:
         for optrun in args.optruns:
-            do_run(run, optrun, args.parallelism)
+            do_run(
+                experiment_name=args.experiment_name,
+                run=run,
+                optrun=optrun,
+                parallelism=args.parallelism,
+            )
 
 
 if __name__ == "__main__":

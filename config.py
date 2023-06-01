@@ -137,32 +137,25 @@ ROBOPT_RUNS = 5
 
 ROBOPT_NUM_INITIAL_MUTATIONS = 500
 
-ROBOPT_POPULATION_SIZE = 100
-ROBOPT_OFFSPRING_SIZE = 50
-ROBOPT_NUM_GENERATIONS = 20
+ROBOPT_POPULATION_SIZE = 2
+ROBOPT_OFFSPRING_SIZE = 2
+ROBOPT_NUM_GENERATIONS = 2
 
 ROBOPT_SIMULATION_TIME = 30
 ROBOPT_SAMPLING_FREQUENCY = 5
 ROBOPT_CONTROL_FREQUENCY = 60
 
 ROBOPT_BRAIN_INITIAL_STD = 0.5
-ROBOPT_BRAIN_NUM_GENERATIONS = 20
+ROBOPT_BRAIN_NUM_GENERATIONS = 2
 
 # settings for opt_robot_displacement_benchmark.py
 OPTBENCH_RNG_SEED = 9376349871923
-OPTBENCH_OUT = lambda run, optrun: path.join(
-    RESULTS_BASE, f"run{run}", f"opt_bench", f"optrun{optrun}"
+OPTBENCH_OUT = lambda experiment_name, run, optrun: path.join(
+    RESULTS_BASE, f"run{run}", f"exps/{experiment_name}/opt_cppn", f"optrun{optrun}"
 )
 
 # settings for opt_robot_displacement_rtgae.py
 OPTRTGAE_RNG_SEED = 986576245246
-# OPTRTGAE_OUT = lambda run, optrun, bestorworst: path.join(
-#     RESULTS_BASE,
-#     f"run{run}",
-#     f"opt_rtgae",
-#     "best" if bestorworst else "worst",
-#     f"optrun{optrun}",
-# )
 OPTRTGAE_OUT = lambda experiment_name, run, optrun, t_dim, r_dim: path.join(
     RESULTS_BASE,
     f"run{run}",
