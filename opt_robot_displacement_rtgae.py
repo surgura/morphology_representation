@@ -18,7 +18,6 @@ from rtgae import tree_grammar
 from rtgae.recursive_tree_grammar_auto_encoder import TreeGrammarAutoEncoder
 import brain_optimizer
 from revolve2.core.modular_robot import ModularRobot
-import math
 from robot_to_actor_cpg import robot_to_actor_cpg
 from make_brain import make_brain
 

@@ -40,6 +40,10 @@ def optimize_multiple(
     bodies: List[Body],
     slice: Tuple[int, int],
 ) -> List[Tuple[float, ...]]:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="[%(asctime)s] [%(levelname)s] [%(module)s] %(message)s",
+    )
     return [optimize(evaluator, rng, body) for body in bodies[slice[0] : slice[1]]]
 
 
