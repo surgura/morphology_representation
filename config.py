@@ -165,8 +165,10 @@ OPTRTGAE_OUT = lambda experiment_name, run, optrun, t_dim, r_dim: path.join(
 OPTRTGAE_MUTATE_SIGMA = 0.1
 
 # settings for plot_robots_fitness.py
-PLOPT_OUT_INDIVIDUAL_OPTRUNS_BENCH = lambda run, optrun: path.join(
-    RESULTS_BASE, f"run{run}", f"opt_fitness_plot/bench_optrun{optrun}.svg"
+PLOPT_OUT_INDIVIDUAL_OPTRUNS_BENCH = lambda experiment_name, run, optrun: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"exps/{experiment_name}/opt_fitness_plot/bench_optrun{optrun}.svg",
 )
 PLOPT_OUT_INDIVIDUAL_OPTRUNS_RTGAE = lambda experiment_name, run, optrun, t_dim, r_dim: path.join(
     RESULTS_BASE,
