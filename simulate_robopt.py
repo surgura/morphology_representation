@@ -1,6 +1,5 @@
 import argparse
 import logging
-import pickle
 
 import torch
 from sqlalchemy import select
@@ -15,10 +14,8 @@ from revolve2.core.modular_robot import ModularRobot
 from robot_rgt import make_body_rgt
 from rtgae import tree_grammar
 from rtgae.recursive_tree_grammar_auto_encoder import TreeGrammarAutoEncoder
-from select_representations import Measure
 from make_brain import make_brain
 from robot_to_actor_cpg import robot_to_actor_cpg
-import indices_range
 
 
 def load_robot_cppn(experiment_name: str, run: int, optrun: int) -> ModularRobot:
