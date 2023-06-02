@@ -164,6 +164,19 @@ OPTRTGAE_OUT = lambda experiment_name, run, optrun, t_dim, r_dim: path.join(
 )
 OPTRTGAE_MUTATE_SIGMA = 0.1
 
+# settings for opt_robot_displacement_cmaes.py
+OPTCMAES_RNG_SEED = 23409587821
+OPTCMAES_OUT = lambda experiment_name, run, optrun, t_dim, r_dim: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"exps/{experiment_name}/opt_cmaes",
+    f"t_dim{t_dim}___r_dim{r_dim}___optrun{optrun}",
+)
+OPTCMAES_NUM_EVALUATIONS = (
+    ROBOPT_POPULATION_SIZE + ROBOPT_OFFSPRING_SIZE * ROBOPT_NUM_GENERATIONS
+)
+OPTCMAES_BRAIN_INITIAL_STD = 0.5
+
 # settings for plot_robots_fitness.py
 PLOPT_OUT_INDIVIDUAL_OPTRUNS_BENCH = lambda experiment_name, run, optrun: path.join(
     RESULTS_BASE,
