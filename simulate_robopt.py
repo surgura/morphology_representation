@@ -16,10 +16,15 @@ from robot_rgt import make_body_rgt
 from rtgae import tree_grammar
 from rtgae.recursive_tree_grammar_auto_encoder import TreeGrammarAutoEncoder
 from select_representations import Measure
+from make_brain import make_brain
+from robot_to_actor_cpg import robot_to_actor_cpg
+import indices_range
 
 
-def load_robot_bench(run: int, optrun: int) -> ModularRobot:
-    dbengine = open_database_sqlite(config.OPTBENCH_OUT(run, optrun))
+def load_robot_cppn(experiment_name: str, run: int, optrun: int) -> ModularRobot:
+    dbengine = open_database_sqlite(
+        config.OPTBENCH_OUT(experiment_name=experiment_name, run=run, optrun=optrun)
+    )
     with Session(dbengine) as ses:
         best_individual_last_gen = ses.scalar(
             select(bmodel.Individual)
@@ -34,29 +39,60 @@ def load_robot_bench(run: int, optrun: int) -> ModularRobot:
         assert best_individual_last_gen is not None
 
         print(f"Fitness from database: {best_individual_last_gen.fitness}")
-        return best_individual_last_gen.genotype.develop()
+        body = best_individual_last_gen.genotype.develop()
+        brain = make_brain(
+            robot_to_actor_cpg(body)[1],
+            best_individual_last_gen.brain_parameters.parameters,
+        )
+        return ModularRobot(body, brain)
 
 
 def load_body_model(
-    run: int, t_dim: int, r_dim: int, grammar: tree_grammar.TreeGrammar
+    experiment_name: str,
+    run: int,
+    t_dim: int,
+    r_dim: int,
+    grammar: tree_grammar.TreeGrammar,
 ) -> TreeGrammarAutoEncoder:
     model = TreeGrammarAutoEncoder(grammar, dim=t_dim, dim_vae=r_dim)
     model.load_state_dict(
-        torch.load(config.TRAIN_OUT(run=run, t_dim=t_dim, r_dim=r_dim))
+        torch.load(
+            config.TRAIN_OUT(
+                experiment_name=experiment_name, run=run, t_dim=t_dim, r_dim=r_dim
+            )
+        )
     )
     return model
 
 
-def load_robot_rtgae(run: int, optrun: int, bestorworst: bool) -> ModularRobot:
-    with open(config.SREP_OUT(run), "rb") as f:
-        selection: Measure = pickle.load(f)["best" if bestorworst else "worst"]
-    t_dim = selection.t_dim
-    r_dim = selection.r_dim
+def load_robot_rtgae(
+    experiment_name: str,
+    run: int,
+    optrun: int,
+    t_dim_i: int,
+    r_dim_i: int,
+) -> ModularRobot:
+    t_dim = config.MODEL_T_DIMS[t_dim_i]
+    r_dim = config.MODEL_R_DIMS[r_dim_i]
 
     grammar = make_body_rgt()
-    body_model = load_body_model(run=run, t_dim=t_dim, r_dim=r_dim, grammar=grammar)
+    body_model = load_body_model(
+        experiment_name=experiment_name,
+        run=run,
+        t_dim=t_dim,
+        r_dim=r_dim,
+        grammar=grammar,
+    )
 
-    dbengine = open_database_sqlite(config.OPTRTGAE_OUT(run, optrun, bestorworst))
+    dbengine = open_database_sqlite(
+        config.OPTRTGAE_OUT(
+            experiment_name=experiment_name,
+            run=run,
+            optrun=optrun,
+            t_dim=t_dim,
+            r_dim=r_dim,
+        )
+    )
     with Session(dbengine) as ses:
         best_individual_last_gen = ses.scalar(
             select(rmodel.Individual)
@@ -71,7 +107,12 @@ def load_robot_rtgae(run: int, optrun: int, bestorworst: bool) -> ModularRobot:
         assert best_individual_last_gen is not None
 
         print(f"Fitness from database: {best_individual_last_gen.fitness}")
-        return best_individual_last_gen.genotype.develop(body_model)
+        body = best_individual_last_gen.genotype.develop(body_model)
+        brain = make_brain(
+            robot_to_actor_cpg(body)[1],
+            best_individual_last_gen.brain_parameters.parameters,
+        )
+        return ModularRobot(body, brain)
 
 
 def main() -> None:
@@ -81,6 +122,7 @@ def main() -> None:
     )
 
     parser = argparse.ArgumentParser()
+    parser.add_argument("-e", "--experiment_name", type=str, required=True)
     parser.add_argument(
         "-r", "--run", type=int, choices=range(config.RUNS), required=True
     )
@@ -88,15 +130,34 @@ def main() -> None:
         "--optrun", type=int, choices=range(config.ROBOPT_RUNS), required=True
     )
     subparsers = parser.add_subparsers(dest="opt", required=True)
-    subparsers.add_parser("bench")
+    subparsers.add_parser("cppn")
     rtgae_parser = subparsers.add_parser("rtgae")
-    rtgae_parser.add_argument("bestorworst", type=str, choices=["best", "worst"])
+    rtgae_parser.add_argument(
+        "--r_dim",
+        type=int,
+        choices=range(len(config.MODEL_R_DIMS)),
+        required=True,
+    )
+    rtgae_parser.add_argument(
+        "--t_dim",
+        type=int,
+        choices=range(len(config.MODEL_T_DIMS)),
+        required=True,
+    )
     args = parser.parse_args()
 
-    if args.opt == "bench":
-        robot = load_robot_bench(args.run, args.optrun)
+    if args.opt == "cppn":
+        robot = load_robot_cppn(
+            experiment_name=args.experiment_name, run=args.run, optrun=args.optrun
+        )
     else:
-        robot = load_robot_rtgae(args.run, args.optrun, args.bestorworst == "best")
+        robot = load_robot_rtgae(
+            experiment_name=args.experiment_name,
+            run=args.run,
+            optrun=args.optrun,
+            r_dim_i=args.r_dim,
+            t_dim_i=args.t_dim,
+        )
 
     evaluator = Evaluator(headless=False, num_simulators=1)
     evaluator.evaluate([robot])
