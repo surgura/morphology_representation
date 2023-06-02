@@ -93,6 +93,8 @@ def do_run(experiment_name: str, run: int, optrun: int, parallelism: int) -> Non
     )
     rng = np.random.Generator(np.random.PCG64(rng_seed))
 
+    logging.info(f"Running run{run} optrun{optrun}")
+
     evaluator = Evaluator(True, parallelism)
 
     # multineat innovation databases
