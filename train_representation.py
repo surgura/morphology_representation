@@ -201,7 +201,7 @@ def main() -> None:
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-e", "--experiment_name", type=str, required=True)
-    parser.add_argument("-j", "--jobs", type=int, default=1)
+    parser.add_argument("-p", "--parallelism", type=int)
     parser.add_argument(
         "-r",
         "--runs",
@@ -233,7 +233,7 @@ def main() -> None:
                     )
                 )
 
-    joblib.Parallel(n_jobs=args.jobs)(jobs)
+    joblib.Parallel(n_jobs=args.parallelism)(jobs)
 
 
 if __name__ == "__main__":
