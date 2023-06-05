@@ -46,7 +46,7 @@ TRAIN_OUT = lambda experiment_name, run, t_dim, r_dim: path.join(
     f"run{run}",
     f"exps/{experiment_name}/trained_representation/t_dim{t_dim}___r_dim{r_dim}/model.state",
 )
-TRAIN_EPOCHS = 50
+TRAIN_EPOCHS = 200
 TRAIN_BATCH_SIZE = 200
 TRAIN_TRIPLET_LABEL_MARGIN = 0.2
 TRAIN_TRIPLET_FACTOR = 3.0
