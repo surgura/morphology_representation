@@ -102,7 +102,7 @@ def main() -> None:
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-e", "--experiment_name", type=str, required=True)
-    parser.add_argument("-p", "--parallelism", type=int, default=1)
+    parser.add_argument("-p", "--parallelism", type=int, required=True)
     parser.add_argument(
         "-r",
         "--runs",

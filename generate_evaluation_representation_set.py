@@ -122,7 +122,7 @@ def main() -> None:
     )
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-p", "--parallelism", type=int, default=1)
+    parser.add_argument("-p", "--parallelism", type=int, required=True)
     args = parser.parse_args()
 
     for run in range(config.RUNS):

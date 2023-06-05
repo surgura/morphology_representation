@@ -279,7 +279,7 @@ def main() -> None:
         type=indices_range.indices_type(range(config.ROBOPT_RUNS)),
         required=True,
     )
-    parser.add_argument("-p", "--parallelism", type=int, default=1)
+    parser.add_argument("-p", "--parallelism", type=int, required=True)
     args = parser.parse_args()
 
     for run in args.runs:
