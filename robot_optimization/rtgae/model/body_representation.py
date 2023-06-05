@@ -54,7 +54,7 @@ class BodyRepresentation(Base):
         :param representation_size: Number of parameters for the body representation.
         :returns: The created genotype.
         """
-        body = rng.random(representation_size).tolist()
+        body = (rng.random(representation_size) * 2.0 - 1.0).tolist()
 
         return BodyRepresentation(body)
 

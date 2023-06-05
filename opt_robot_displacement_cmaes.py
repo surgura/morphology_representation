@@ -100,7 +100,7 @@ def do_run(
     options.set("seed", rng.integers(0, 2**15))
     options.set("bounds", [-1.0, 1.0])
     opt = cma.CMAEvolutionStrategy(
-        initial_body, config.OPTCMAES_BRAIN_INITIAL_STD, options
+        initial_body, config.OPTCMAES_BODY_INITIAL_STD, options
     )
 
     last_best: Optional[
