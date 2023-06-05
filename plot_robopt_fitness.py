@@ -8,6 +8,7 @@ from sqlalchemy import select
 import config
 import robot_optimization.benchmark.model as bmodel
 import robot_optimization.rtgae.model as rmodel
+import robot_optimization.cmaes.model as cmodel
 from revolve2.core.database import open_database_sqlite
 import argparse
 
@@ -25,6 +26,7 @@ def main() -> None:
     experiment_name = args.experiment_name
 
     for run in range(config.RUNS):
+        # CPPN
         optrun_describes = []
         for optrun in range(config.ROBOPT_RUNS):
             db = open_database_sqlite(
@@ -49,20 +51,29 @@ def main() -> None:
             )
             pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
             plt.savefig(out_dir, bbox_inches="tight")
+            plt.close()
 
             optrun_describes.append(
                 describe[["generation_index", "max", "mean", "min"]]
             )
 
         df = pandas.concat(optrun_describes)
-        means = df.groupby(by="generation_index").mean().reset_index()
-        means[["max", "mean", "min"]].plot()
+        mean = df.groupby(by="generation_index").mean()
+        mean.plot()
+        cppn = mean["max"].reset_index()
+        cppn["generation_index"] *= (
+            config.OPTCMAES_NUM_EVALUATIONS / config.ROBOPT_NUM_GENERATIONS
+        )
+        cppn.rename(columns={"generation_index": "evaluations"}, inplace=True)
 
         out_dir = config.PLOPT_OUT_MEAN_OPTRUNS_BENCH(run=run)
         pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
         plt.savefig(out_dir, bbox_inches="tight")
+        plt.close()
 
-    for run in range(config.RUNS):
+        # RTGAE
+        rtgae = {}
+
         for t_dim_i in range(len(config.MODEL_T_DIMS)):
             for r_dim_i in range(len(config.MODEL_R_DIMS)):
                 t_dim = config.MODEL_T_DIMS[t_dim_i]
@@ -93,18 +104,90 @@ def main() -> None:
                     )
                     pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
                     plt.savefig(out_dir, bbox_inches="tight")
+                    plt.close()
 
                     optrun_describes.append(
                         describe[["generation_index", "max", "mean", "min"]]
                     )
 
                 df = pandas.concat(optrun_describes)
-                means = df.groupby(by="generation_index").mean().reset_index()
-                means[["max", "mean", "min"]].plot()
+                mean = df.groupby(by="generation_index").mean()
+                mean.plot()
+                rtgae[f"t_{t_dim}___r_{r_dim}"] = mean["max"].reset_index()
+                rtgae[f"t_{t_dim}___r_{r_dim}"]["generation_index"] *= (
+                    config.OPTCMAES_NUM_EVALUATIONS / config.ROBOPT_NUM_GENERATIONS
+                )
+                rtgae[f"t_{t_dim}___r_{r_dim}"].rename(
+                    columns={"generation_index": "evaluations"}, inplace=True
+                )
 
                 out_dir = config.PLOPT_OUT_MEAN_OPTRUNS_RTGAE(run, t_dim, r_dim)
                 pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
                 plt.savefig(out_dir, bbox_inches="tight")
+                plt.close()
+
+        # CMAES
+        cmaes = {}
+
+        for t_dim_i in range(len(config.MODEL_T_DIMS)):
+            for r_dim_i in range(len(config.MODEL_R_DIMS)):
+                t_dim = config.MODEL_T_DIMS[t_dim_i]
+                r_dim = config.MODEL_R_DIMS[r_dim_i]
+                dfs = []
+                for optrun in range(config.ROBOPT_RUNS):
+                    db = open_database_sqlite(
+                        config.OPTCMAES_OUT(experiment_name, run, optrun, t_dim, r_dim)
+                    )
+                    df = pandas.read_sql(
+                        select(
+                            cmodel.Generation.generation_index,
+                            cmodel.Generation.fitness,
+                        ),
+                        db,
+                    )
+                    df.set_index("generation_index").plot()
+
+                    out_dir = config.PLOPT_OUT_INDIVIDUAL_OPTRUNS_CMAES(
+                        experiment_name, run, optrun, t_dim, r_dim
+                    )
+                    pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
+                    plt.savefig(out_dir, bbox_inches="tight")
+                    plt.close()
+
+                    dfs.append(df)
+
+                df = pandas.concat(dfs)
+                mean = df.groupby(by="generation_index").mean()
+                mean.plot()
+                cmaes[f"t_{t_dim}___r_{r_dim}"] = mean.reset_index().rename(
+                    columns={"fitness": "max", "generation_index": "evaluations"}
+                )
+                cmaes[f"t_{t_dim}___r_{r_dim}"]["evaluations"] *= (
+                    config.OPTCMAES_NUM_EVALUATIONS
+                    / cmaes[f"t_{t_dim}___r_{r_dim}"]["evaluations"].max()
+                )
+
+                out_dir = config.PLOPT_OUT_MEAN_OPTRUNS_CMAES(run, t_dim, r_dim)
+                pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
+                plt.savefig(out_dir, bbox_inches="tight")
+                plt.close()
+
+        # ax = cppn.plot(x="generation_index")
+        out_dir = config.PLOPT_OUT_ALL(run)
+        pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
+        ax = cppn.plot(x="evaluations", y="max", label="CPPNWIN")
+        for t_dim_i in range(len(config.MODEL_T_DIMS)):
+            for r_dim_i in range(len(config.MODEL_R_DIMS)):
+                rtgae[f"t_{t_dim}___r_{r_dim}"].plot(
+                    ax=ax, x="evaluations", y="max", label=f"RTGAE t={t_dim} r={r_dim}"
+                )
+                cmaes[f"t_{t_dim}___r_{r_dim}"].plot(
+                    ax=ax, x="evaluations", y="max", label=f"CMAES t={t_dim} r={r_dim}"
+                )
+
+        ax.set_ylabel("Fitness")
+        ax.set_xlabel("Evaluations")
+        plt.savefig(out_dir, bbox_inches="tight")
 
 
 if __name__ == "__main__":

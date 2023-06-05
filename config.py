@@ -188,6 +188,11 @@ PLOPT_OUT_INDIVIDUAL_OPTRUNS_RTGAE = lambda experiment_name, run, optrun, t_dim,
     f"run{run}",
     f"exps/{experiment_name}/opt_fitness_plot/rtgae_t_dim{t_dim}___r_dim{r_dim}___optrun{optrun}.svg",
 )
+PLOPT_OUT_INDIVIDUAL_OPTRUNS_CMAES = lambda experiment_name, run, optrun, t_dim, r_dim: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"exps/{experiment_name}/opt_fitness_plot/cmaes_t_dim{t_dim}___r_dim{r_dim}___optrun{optrun}.svg",
+)
 PLOPT_OUT_MEAN_OPTRUNS_BENCH = lambda run: path.join(
     RESULTS_BASE, f"run{run}", f"opt_fitness_plot/bench_mean.svg"
 )
@@ -195,6 +200,16 @@ PLOPT_OUT_MEAN_OPTRUNS_RTGAE = lambda run, t_dim, r_dim: path.join(
     RESULTS_BASE,
     f"run{run}",
     f"opt_fitness_plot/rtgae_t_dim{t_dim}___r_dim{r_dim}___mean.svg",
+)
+PLOPT_OUT_MEAN_OPTRUNS_CMAES = lambda run, t_dim, r_dim: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"opt_fitness_plot/cmaes_t_dim{t_dim}___r_dim{r_dim}___mean.svg",
+)
+PLOPT_OUT_ALL = lambda run: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"opt_fitness_plot/all.svg",
 )
 
 # settings for sample_representations.py
