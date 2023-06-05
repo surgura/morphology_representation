@@ -171,7 +171,7 @@ OPTCMAES_OUT = lambda experiment_name, run, optrun, t_dim, r_dim: path.join(
 OPTCMAES_NUM_EVALUATIONS = (
     ROBOPT_POPULATION_SIZE + ROBOPT_OFFSPRING_SIZE * ROBOPT_NUM_GENERATIONS
 )
-OPTCMAES_BODY_INITIAL_STD = 0.5
+OPTCMAES_BODY_INITIAL_STD = 1.0
 
 # settings for plot_robots_fitness.py
 PLOPT_OUT_INDIVIDUAL_OPTRUNS_BENCH = lambda experiment_name, run, optrun: path.join(
