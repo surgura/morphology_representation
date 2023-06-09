@@ -33,6 +33,7 @@ class Individual(
         )
         genotype_id: orm.Mapped[int] = orm.mapped_column(nullable=False, init=False)
         genotype: orm.Mapped[TBodyGenotype] = orm.relationship()
+        fitness_before_learning: orm.Mapped[float] = orm.mapped_column(nullable=False)
         fitness: orm.Mapped[float] = orm.mapped_column(nullable=False)
         brain_parameters_id: orm.Mapped[int] = orm.mapped_column(
             nullable=False, init=False
@@ -59,6 +60,10 @@ class Individual(
         @orm.declared_attr
         def genotype(cls) -> orm.Mapped[TBodyGenotype]:
             return cls.__genotype_impl()
+
+        @orm.declared_attr
+        def fitness_before_learning(cls) -> orm.Mapped[float]:
+            return cls.__fitness_before_learning_impl()
 
         @orm.declared_attr
         def fitness(cls) -> orm.Mapped[float]:
@@ -120,6 +125,10 @@ class Individual(
     @classmethod
     def __genotype_impl(cls) -> orm.Mapped[TBodyGenotype]:
         return orm.relationship(cls.__type_tbodygenotype)
+
+    @classmethod
+    def __fitness_before_learning_impl(cls) -> orm.Mapped[float]:
+        return orm.mapped_column(nullable=False)
 
     @classmethod
     def __fitness_impl(cls) -> orm.Mapped[float]:

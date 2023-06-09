@@ -67,17 +67,23 @@ def select_survivors(
     return model.Population(
         [
             model.Individual(
-                original_population.individuals[i].genotype,
-                original_population.individuals[i].fitness,
-                original_population.individuals[i].brain_parameters,
+                genotype=original_population.individuals[i].genotype,
+                fitness_before_learning=original_population.individuals[
+                    i
+                ].fitness_before_learning,
+                fitness=original_population.individuals[i].fitness,
+                brain_parameters=original_population.individuals[i].brain_parameters,
             )
             for i in original_survivors
         ]
         + [
             model.Individual(
-                offspring_population.individuals[i].genotype,
-                offspring_population.individuals[i].fitness,
-                offspring_population.individuals[i].brain_parameters,
+                genotype=offspring_population.individuals[i].genotype,
+                fitness_before_learning=offspring_population.individuals[
+                    i
+                ].fitness_before_learning,
+                fitness=offspring_population.individuals[i].fitness,
+                brain_parameters=offspring_population.individuals[i].brain_parameters,
             )
             for i in offspring_survivors
         ]
@@ -116,26 +122,37 @@ def do_run(experiment_name: str, run: int, optrun: int, parallelism: int) -> Non
     ]
     logging.info("Evaluating initial population.")
     initial_bodies = [genotype.develop() for genotype in initial_genotypes]
+    (
+        initial_fitnesses_before_learning,
+        initial_fitnesses_after_learning,
+        initial_optimized_brain_parameters,
+    ) = zip(
+        *[
+            (fitness_before, fitness_after, model.BrainParameters(params))
+            for fitness_before, fitness_after, params in brain_optimizer.optimize_multiple_parallel(
+                evaluator, rng, initial_bodies, parallelism=(parallelism // 5)
+            )
+        ]
+    )
     initial_optimized_brain_parameters = [
         model.BrainParameters(b)
         for b in brain_optimizer.optimize_multiple_parallel(
             evaluator, rng, initial_bodies, parallelism=(parallelism // 5)
         )
     ]
-    initial_modular_robots = [
-        ModularRobot(
-            body, make_brain(robot_to_actor_cpg(body)[1], brain_genotype.parameters)
-        )
-        for body, brain_genotype in zip(
-            initial_bodies, initial_optimized_brain_parameters
-        )
-    ]
-    initial_fitnesses = evaluator.evaluate([robot for robot in initial_modular_robots])
     population = model.Population(
         [
-            model.Individual(genotype, fitness, brain_parameters)
-            for genotype, fitness, brain_parameters in zip(
-                initial_genotypes, initial_fitnesses, initial_optimized_brain_parameters
+            model.Individual(
+                genotype=genotype,
+                fitness_before_learning=fitness_before_learning,
+                fitness=fitness_after_learning,
+                brain_parameters=brain_parameters,
+            )
+            for genotype, fitness_before_learning, fitness_after_learning, brain_parameters in zip(
+                initial_genotypes,
+                initial_fitnesses_before_learning,
+                initial_fitnesses_after_learning,
+                initial_optimized_brain_parameters,
             )
         ]
     )
@@ -166,30 +183,30 @@ def do_run(experiment_name: str, run: int, optrun: int, parallelism: int) -> Non
             for parent1_i, parent2_i in parents
         ]
         offspring_bodies = [genotype.develop() for genotype in offspring_genotypes]
-        offspring_optimized_brain_parameters = [
-            model.BrainParameters(b)
-            for b in brain_optimizer.optimize_multiple_parallel(
-                evaluator, rng, offspring_bodies, parallelism=(parallelism // 5)
-            )
-        ]
-        offspring_modular_robots = [
-            ModularRobot(
-                body, make_brain(robot_to_actor_cpg(body)[1], brain_genotype.parameters)
-            )
-            for body, brain_genotype in zip(
-                offspring_bodies, offspring_optimized_brain_parameters
-            )
-        ]
-
-        offspring_fitnesses = evaluator.evaluate(
-            [robot for robot in offspring_modular_robots]
+        (
+            offspring_fitnesses_before_learning,
+            offspring_fitnesses_after_learning,
+            offspring_optimized_brain_parameters,
+        ) = zip(
+            *[
+                (fitness_before, fitness_after, model.BrainParameters(params))
+                for fitness_before, fitness_after, params in brain_optimizer.optimize_multiple_parallel(
+                    evaluator, rng, offspring_bodies, parallelism=(parallelism // 5)
+                )
+            ]
         )
         offspring_population = model.Population(
             [
-                model.Individual(genotype, fitness, brain_parameters)
-                for genotype, fitness, brain_parameters in zip(
+                model.Individual(
+                    genotype=genotype,
+                    fitness_before_learning=fitness_before_learning,
+                    fitness=fitness_after_learning,
+                    brain_parameters=brain_parameters,
+                )
+                for genotype, fitness_before_learning, fitness_after_learning, brain_parameters in zip(
                     offspring_genotypes,
-                    offspring_fitnesses,
+                    offspring_fitnesses_before_learning,
+                    offspring_fitnesses_after_learning,
                     offspring_optimized_brain_parameters,
                 )
             ]

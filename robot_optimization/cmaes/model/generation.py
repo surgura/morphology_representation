@@ -19,6 +19,7 @@ class Generation(Base, HasId, orm.MappedAsDataclass):
         init=False,
     )
     body_parameters: orm.Mapped[BodyParameters] = orm.relationship()
+    fitness_before_learning: orm.Mapped[float] = orm.mapped_column(nullable=False)
     fitness: orm.Mapped[float] = orm.mapped_column(nullable=False)
     brain_parameters_id: orm.Mapped[int] = orm.mapped_column(
         sqlalchemy.ForeignKey(f"{BrainParameters.__tablename__}.id"),

@@ -13,7 +13,10 @@ import joblib
 
 def optimize_multiple_parallel(
     evaluator: Evaluator, rng: np.random.Generator, bodies: List[Body], parallelism: int
-) -> List[Tuple[float, ...]]:
+) -> List[Tuple[float, float, Tuple[float, ...]]]:
+    """
+    returns: fitness_before, fitness_after, best brain
+    """
     slices = [
         (
             job_i * len(bodies) // parallelism,
@@ -39,7 +42,7 @@ def optimize_multiple(
     rng: np.random.Generator,
     bodies: List[Body],
     slice: Tuple[int, int],
-) -> List[Tuple[float, ...]]:
+) -> List[Tuple[float, float, Tuple[float, ...]]]:
     logging.basicConfig(
         level=logging.INFO,
         format="[%(asctime)s] [%(levelname)s] [%(module)s] %(message)s",
@@ -49,12 +52,20 @@ def optimize_multiple(
 
 def optimize(
     evaluator: Evaluator, rng: np.random.Generator, body: Body
-) -> Tuple[float, ...]:
+) -> Tuple[float, float, Tuple[float, ...]]:
     logging.info("Starting brain optimization.")
 
     _, cpg_network_structure = robot_to_actor_cpg(body)
     if cpg_network_structure.num_connections == 0:
-        return tuple()
+        robot = ModularRobot(
+            body=body,
+            brain=make_brain(
+                cpg_network_structure,
+                tuple(),
+            ),
+        )
+        fitness = evaluator.evaluate([robot])[0]
+        return (fitness, fitness, tuple())
     initial_brain = max(cpg_network_structure.num_connections, 2) * [0.0]
 
     options = cma.CMAOptions()
@@ -63,6 +74,8 @@ def optimize(
     opt = cma.CMAEvolutionStrategy(
         initial_brain, config.ROBOPT_BRAIN_INITIAL_STD, options
     )
+
+    fitness_before = None
 
     gen = 0
     while gen < config.ROBOPT_BRAIN_NUM_GENERATIONS:
@@ -85,10 +98,17 @@ def optimize(
         opt.tell(solutions, fitnesses)
         logging.info(f"{opt.result.xbest=} {opt.result.fbest=}")
 
+        if fitness_before is None:
+            fitness_before = -opt.result.fbest
         gen += 1
 
     logging.info("Brain optimization done.")
 
-    return tuple(
-        float(x) for x in opt.result.xbest[0 : cpg_network_structure.num_connections]
+    return (
+        fitness_before,
+        -opt.result.fbest,
+        tuple(
+            float(x)
+            for x in opt.result.xbest[0 : cpg_network_structure.num_connections]
+        ),
     )
