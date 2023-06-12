@@ -66,7 +66,9 @@ def main() -> None:
         )
         cppn.rename(columns={"generation_index": "evaluations"}, inplace=True)
 
-        out_dir = config.PLOPT_OUT_MEAN_OPTRUNS_BENCH(run=run)
+        out_dir = config.PLOPT_OUT_MEAN_OPTRUNS_BENCH(
+            experiment_name=experiment_name, run=run
+        )
         pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
         plt.savefig(out_dir, bbox_inches="tight")
         plt.close()
@@ -74,10 +76,8 @@ def main() -> None:
         # RTGAE
         rtgae = {}
 
-        for t_dim_i in range(len(config.MODEL_T_DIMS)):
-            for r_dim_i in range(len(config.MODEL_R_DIMS)):
-                t_dim = config.MODEL_T_DIMS[t_dim_i]
-                r_dim = config.MODEL_R_DIMS[r_dim_i]
+        for t_dim in config.MODEL_T_DIMS:
+            for r_dim in config.MODEL_R_DIMS:
                 optrun_describes = []
                 for optrun in range(config.ROBOPT_RUNS):
                     db = open_database_sqlite(
@@ -121,7 +121,9 @@ def main() -> None:
                     columns={"generation_index": "evaluations"}, inplace=True
                 )
 
-                out_dir = config.PLOPT_OUT_MEAN_OPTRUNS_RTGAE(run, t_dim, r_dim)
+                out_dir = config.PLOPT_OUT_MEAN_OPTRUNS_RTGAE(
+                    experiment_name=experiment_name, run=run, t_dim=t_dim, r_dim=r_dim
+                )
                 pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
                 plt.savefig(out_dir, bbox_inches="tight")
                 plt.close()
@@ -129,10 +131,8 @@ def main() -> None:
         # CMAES
         cmaes = {}
 
-        for t_dim_i in range(len(config.MODEL_T_DIMS)):
-            for r_dim_i in range(len(config.MODEL_R_DIMS)):
-                t_dim = config.MODEL_T_DIMS[t_dim_i]
-                r_dim = config.MODEL_R_DIMS[r_dim_i]
+        for t_dim in config.MODEL_T_DIMS:
+            for r_dim in config.MODEL_R_DIMS:
                 dfs = []
                 for optrun in range(config.ROBOPT_RUNS):
                     db = open_database_sqlite(
@@ -167,17 +167,19 @@ def main() -> None:
                     / cmaes[f"t_{t_dim}___r_{r_dim}"]["evaluations"].max()
                 )
 
-                out_dir = config.PLOPT_OUT_MEAN_OPTRUNS_CMAES(run, t_dim, r_dim)
+                out_dir = config.PLOPT_OUT_MEAN_OPTRUNS_CMAES(
+                    experiment_name=experiment_name, run=run, t_dim=t_dim, r_dim=r_dim
+                )
                 pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
                 plt.savefig(out_dir, bbox_inches="tight")
                 plt.close()
 
         # ax = cppn.plot(x="generation_index")
-        out_dir = config.PLOPT_OUT_ALL(run)
+        out_dir = config.PLOPT_OUT_ALL(experiment_name=experiment_name, run=run)
         pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
         ax = cppn.plot(x="evaluations", y="max", label="CPPNWIN")
-        for t_dim_i in range(len(config.MODEL_T_DIMS)):
-            for r_dim_i in range(len(config.MODEL_R_DIMS)):
+        for t_dim in config.MODEL_T_DIMS:
+            for r_dim in config.MODEL_R_DIMS:
                 rtgae[f"t_{t_dim}___r_{r_dim}"].plot(
                     ax=ax, x="evaluations", y="max", label=f"RTGAE t={t_dim} r={r_dim}"
                 )

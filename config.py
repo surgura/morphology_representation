@@ -25,7 +25,11 @@ RENDERTRAIN_OUT = lambda run, item_i: path.join(
 )
 
 # settings for representation model
-MODEL_T_DIMS = [16, 64, 256]  # tree encoding dimensionality. 'dim' in rtgae.
+MODEL_T_DIMS = [
+    # 16,
+    # 64,
+    256,
+]  # tree encoding dimensionality. 'dim' in rtgae.
 MODEL_R_DIMS = [
     8,
     16,
@@ -55,10 +59,12 @@ TRAIN_OUT_LOSS = lambda experiment_name, run, t_dim, r_dim: path.join(
     f"run{run}",
     f"exps/{experiment_name}/trained_representation/t_dim{t_dim}___r_dim{r_dim}/loss.pickle",
 )
-TRAIN_OUT_PLOT = lambda experiment_name, run, t_dim, r_dim: path.join(
+
+# settings for plot_train_loss.py
+PLTTRAIN_OUT = lambda experiment_name, run, t_dim, r_dim: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"exps/{experiment_name}/trained_representation/t_dim{t_dim}___r_dim{r_dim}/loss.svg",
+    f"exps/{experiment_name}/trained_plot/t_dim{t_dim}___r_dim{r_dim}.svg",
 )
 
 # settings for generate_evaluation_representation_set.py
@@ -171,7 +177,7 @@ OPTCMAES_OUT = lambda experiment_name, run, optrun, t_dim, r_dim: path.join(
 OPTCMAES_NUM_EVALUATIONS = (
     ROBOPT_POPULATION_SIZE + ROBOPT_OFFSPRING_SIZE * ROBOPT_NUM_GENERATIONS
 )
-OPTCMAES_BODY_INITIAL_STD = 1.0
+OPTCMAES_BODY_INITIAL_STD = 0.5
 
 # settings for plot_robots_fitness.py
 PLOPT_OUT_INDIVIDUAL_OPTRUNS_BENCH = lambda experiment_name, run, optrun: path.join(
@@ -189,23 +195,23 @@ PLOPT_OUT_INDIVIDUAL_OPTRUNS_CMAES = lambda experiment_name, run, optrun, t_dim,
     f"run{run}",
     f"exps/{experiment_name}/opt_fitness_plot/cmaes_t_dim{t_dim}___r_dim{r_dim}___optrun{optrun}.svg",
 )
-PLOPT_OUT_MEAN_OPTRUNS_BENCH = lambda run: path.join(
-    RESULTS_BASE, f"run{run}", f"opt_fitness_plot/bench_mean.svg"
+PLOPT_OUT_MEAN_OPTRUNS_BENCH = lambda experiment_name, run: path.join(
+    RESULTS_BASE, f"run{run}", f"exps/{experiment_name}/opt_fitness_plot/bench_mean.svg"
 )
-PLOPT_OUT_MEAN_OPTRUNS_RTGAE = lambda run, t_dim, r_dim: path.join(
+PLOPT_OUT_MEAN_OPTRUNS_RTGAE = lambda experiment_name, run, t_dim, r_dim: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"opt_fitness_plot/rtgae_t_dim{t_dim}___r_dim{r_dim}___mean.svg",
+    f"exps/{experiment_name}/opt_fitness_plot/rtgae_t_dim{t_dim}___r_dim{r_dim}___mean.svg",
 )
-PLOPT_OUT_MEAN_OPTRUNS_CMAES = lambda run, t_dim, r_dim: path.join(
+PLOPT_OUT_MEAN_OPTRUNS_CMAES = lambda experiment_name, run, t_dim, r_dim: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"opt_fitness_plot/cmaes_t_dim{t_dim}___r_dim{r_dim}___mean.svg",
+    f"exps/{experiment_name}/opt_fitness_plot/cmaes_t_dim{t_dim}___r_dim{r_dim}___mean.svg",
 )
-PLOPT_OUT_ALL = lambda run: path.join(
+PLOPT_OUT_ALL = lambda experiment_name, run: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"opt_fitness_plot/all.svg",
+    f"exps/{experiment_name}/opt_fitness_plot/all.svg",
 )
 
 # settings for sample_representations.py

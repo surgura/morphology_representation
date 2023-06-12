@@ -42,7 +42,7 @@ def main() -> None:
                 ax = df.plot(x="epoch", y="loss", legend=False)
                 ax.set_ylabel("loss")
 
-                out_dir = config.TRAIN_OUT_PLOT(
+                out_dir = config.PLTTRAIN_OUT(
                     experiment_name=experiment_name, run=run, t_dim=t_dim, r_dim=r_dim
                 )
                 pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
