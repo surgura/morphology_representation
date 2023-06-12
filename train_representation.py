@@ -178,13 +178,15 @@ def do_run(experiment_name: str, run: int, t_dim_i: int, r_dim_i: int) -> None:
     df = pandas.DataFrame.from_records(
         zip([i for i in range(len(losses))], losses), columns=("epoch", "loss")
     )
-    df.plot()
+    ax = df.plot(x="epoch", y="loss", legend=False)
+    ax.set_ylabel("loss")
     # plt.plot([i for i in range(len(losses))], losses)
     out_dir = config.TRAIN_OUT_PLOT(
         experiment_name=experiment_name, run=run, t_dim=t_dim, r_dim=r_dim
     )
     pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(out_dir)
+    plt.close()
 
     out_dir = config.TRAIN_OUT(
         experiment_name=experiment_name, run=run, t_dim=t_dim, r_dim=r_dim
