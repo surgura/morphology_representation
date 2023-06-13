@@ -57,7 +57,6 @@ TRAIN_DD_OUT = lambda experiment_name, run, t_dim, r_dim: path.join(
 )
 TRAIN_EPOCHS = 200
 TRAIN_BATCH_SIZE = 200
-TRAIN_TRIPLET_LABEL_MARGIN = 0.2
 TRAIN_DD_TRIPLET_FACTOR = 1.0
 TRAIN_OUT_LOSS = lambda experiment_name, run, t_dim, r_dim: path.join(
     RESULTS_BASE,
