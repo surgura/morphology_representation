@@ -99,7 +99,7 @@ def train_epoch(
         train_loss.append(loss.detach().numpy())
 
         aggr_recon_loss.append(recon_loss.detach().numpy())
-        aggr_metric_loss.append(metric_loss)
+        aggr_metric_loss.append(metric_loss.detach().numpy())
     print(
         f"recon={float(np.mean(aggr_recon_loss))} metric={float(np.mean(aggr_metric_loss))}"
     )
