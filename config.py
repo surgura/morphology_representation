@@ -38,6 +38,7 @@ MODEL_R_DIMS = [
     48,
     72,
     216,
+    288,
 ]  # 8, 24  # representation dimensionality. 'dim_vae' in rtgae.
 MODEL_MAX_MODULES = 10
 MODEL_REPR_DOMAIN = [-1.0, 1.0]
