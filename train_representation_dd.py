@@ -44,6 +44,8 @@ def train_epoch(
     optimizer: torch.optim.Optimizer,
 ):
     train_loss = []
+    aggr_recon_loss = []
+    aggr_metric_loss = []
     for batch in train_loader:
         graphs = [GraphAdjform(graph["nodes"], graph["adj"]) for graph in batch]
 
@@ -96,7 +98,11 @@ def train_epoch(
         optimizer.step()
         train_loss.append(loss.detach().numpy())
 
-        print(f"{recon_loss=} {metric_loss=}")
+        aggr_recon_loss.append(recon_loss.detach().numpy())
+        aggr_metric_loss.append(metric_loss)
+    print(
+        f"recon={float(np.mean(aggr_recon_loss))} metric={float(np.mean(aggr_metric_loss))}"
+    )
     return float(np.mean(train_loss))
 
 
