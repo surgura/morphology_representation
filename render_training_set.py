@@ -15,13 +15,15 @@ from robot_rgt import tree_to_body
 from tree import DirectedTreeNodeform
 
 
-def do_run(run: int) -> None:
+def do_run(run: int, experiment_name: str) -> None:
     trainset: List[DirectedTreeNodeform]
-    with open(config.GENTRAIN_OUT(run), "rb") as f:
+    with open(config.GENTRAIN_OUT(run=run, experiment_name=experiment_name), "rb") as f:
         trainset = pickle.load(f)
 
     for i, tree in enumerate(trainset):
-        out_file = config.RENDERTRAIN_OUT(run, i)
+        out_file = config.RENDERTRAIN_OUT(
+            run=run, experiment_name=experiment_name, item_i=i
+        )
         pathlib.Path(out_file).parent.mkdir(parents=True, exist_ok=True)
         render_modular_robot_radial(tree_to_body(tree.to_graph_adjform()), out_file)
 
@@ -33,6 +35,7 @@ def main() -> None:
     )
 
     parser = argparse.ArgumentParser()
+    parser.add_argument("-e", "--experiment_name", type=str, required=True)
     parser.add_argument(
         "-r",
         "--runs",
@@ -42,7 +45,7 @@ def main() -> None:
     args = parser.parse_args()
 
     for run in args.runs:
-        do_run(run=run)
+        do_run(run=run, experiment_name=args.experiment_name)
 
 
 if __name__ == "__main__":

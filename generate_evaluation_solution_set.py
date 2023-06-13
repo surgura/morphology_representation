@@ -15,7 +15,7 @@ import config
 from tree import DirectedTreeNodeform
 
 
-def do_run(run: int) -> None:
+def do_run(run: int, experiment_name: str) -> None:
     rng_seed = int(
         hashlib.sha256(
             f"generate_evaluation_solution_set_seed{config.GENEVALSOL_RNG_SEED}_run{run}".encode()
@@ -36,7 +36,7 @@ def do_run(run: int) -> None:
         ],
         [],
     )
-    out_file = config.GENEVALSOL_OUT(run)
+    out_file = config.GENEVALSOL_OUT(run=run, experiment_name=experiment_name)
     pathlib.Path(out_file).parent.mkdir(parents=True, exist_ok=True)
     with open(out_file, "wb") as f:
         pickle.dump(archive, f)
@@ -49,10 +49,11 @@ def main() -> None:
     )
 
     parser = argparse.ArgumentParser()
-    parser.parse_args()
+    parser.add_argument("-e", "--experiment_name", type=str, required=True)
+    args = parser.parse_args()
 
     for run in range(config.RUNS):
-        do_run(run=run)
+        do_run(run=run, experiment_name=args.experiment_name)
 
 
 if __name__ == "__main__":

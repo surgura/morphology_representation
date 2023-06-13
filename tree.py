@@ -99,6 +99,7 @@ class DirectedTreeNodeform:
         :param rng: Random number generator.
         :param grammar: Grammar that the tree adheres to.
         """
+        raise NotImplementedError("Active hinge rotation not implemented")
         can_remove = [
             node
             for node in self.__nodes_with_none_children
@@ -158,7 +159,15 @@ class DirectedTreeNodeform:
             return 0
 
     @classmethod
-    def _possible_num_trees_with_active_hinge(cls, num_modules: int) -> int:
+    def _possible_num_trees_with_active_hinge_v(cls, num_modules: int) -> int:
+        assert num_modules >= 0
+        if num_modules == 0:
+            return 0
+
+        return cls._num_possible_trees(num_modules - 1, 1)
+
+    @classmethod
+    def _possible_num_trees_with_active_hinge_h(cls, num_modules: int) -> int:
         assert num_modules >= 0
         if num_modules == 0:
             return 0
@@ -177,7 +186,8 @@ class DirectedTreeNodeform:
     def _possible_num_trees_with_any(cls, num_modules: int) -> int:
         return (
             cls._possible_num_trees_with_empty(num_modules)
-            + cls._possible_num_trees_with_active_hinge(num_modules)
+            + cls._possible_num_trees_with_active_hinge_v(num_modules)
+            + cls._possible_num_trees_with_active_hinge_h(num_modules)
             + cls._possible_num_trees_with_brick(num_modules)
         )
 
@@ -250,17 +260,31 @@ class DirectedTreeNodeform:
             open_node = opens.pop()
 
             weight_empty = cls._num_possible_trees(num_modules, len(opens))
-            weight_active_hinge = cls._num_possible_trees(
+            weight_active_hinge_v = cls._num_possible_trees(
+                num_modules - 1, len(opens) + 1
+            )
+            weight_active_hinge_h = cls._num_possible_trees(
                 num_modules - 1, len(opens) + 1
             )
             weight_brick = cls._num_possible_trees(num_modules - 1, len(opens) + 3)
 
-            choice = rng.integers(0, weight_empty + weight_active_hinge + weight_brick)
+            choice = rng.integers(
+                0,
+                weight_empty
+                + weight_active_hinge_v
+                + weight_active_hinge_h
+                + weight_brick,
+            )
             if choice < weight_empty:
                 child = Node("empty", open_node.parent, open_node.parent_index, [])
-            elif choice < weight_empty + weight_active_hinge:
+            elif choice < weight_empty + weight_active_hinge_v:
                 child = Node(
-                    "active_hinge", open_node.parent, open_node.parent_index, [None]
+                    "active_hinge_v", open_node.parent, open_node.parent_index, [None]
+                )
+                num_modules -= 1
+            elif choice < weight_empty + weight_active_hinge_v + weight_active_hinge_h:
+                child = Node(
+                    "active_hinge_h", open_node.parent, open_node.parent_index, [None]
                 )
                 num_modules -= 1
             else:

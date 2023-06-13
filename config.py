@@ -5,8 +5,8 @@ RUNS = 1
 
 # settings for generate_training_set.py
 GENTRAIN_RNG_SEED = 129812393433
-GENTRAIN_OUT = lambda run: path.join(
-    RESULTS_BASE, f"run{run}", "training_set/set.pickle"
+GENTRAIN_OUT = lambda run, experiment_name: path.join(
+    RESULTS_BASE, f"run{run}/exps/{experiment_name}/training_set/set.pickle"
 )
 GENTRAIN_ARCHIVE_SIZE = 10000
 # ----old params----
@@ -20,8 +20,9 @@ GENTRAIN_ARCHIVE_SIZE = 10000
 # GENTRAIN_ARCHIVE_APPEND_NUM = 5
 
 # setting for render_training_set.py
-RENDERTRAIN_OUT = lambda run, item_i: path.join(
-    RESULTS_BASE, f"run{run}", f"training/render/{str(item_i).zfill(5)}.png"
+RENDERTRAIN_OUT = lambda run, experiment_name, item_i: path.join(
+    RESULTS_BASE,
+    f"run{run}/exps/{experiment_name}/training_set_render/{str(item_i).zfill(5)}.png",
 )
 
 # settings for representation model
@@ -81,17 +82,17 @@ PLTTRAIN_OUT = lambda experiment_name, run, t_dim, r_dim: path.join(
 GENEVALREPR_SEED = 34592349873289
 GENEVALREPR_NUM_REPRESENTATIONS = 1000
 GENEVALREPR_NUM_BINS = 20
-GENEVALREPR_OUT_RTGAE = lambda run, t_dim, r_dim: path.join(
+GENEVALREPR_OUT_RTGAE = lambda run, experiment_name, t_dim, r_dim: path.join(
     RESULTS_BASE,
-    f"run{run}",
+    f"run{run}/exps/{experiment_name}",
     f"evaluation/representation/rtgae/t_dim{t_dim}___r_dim{r_dim}/set.pickle",
 )
 
 # settings for generate_evaluation_solution_set.py
 GENEVALSOL_RNG_SEED = 6534591999
 GENEVALSOL_ARCHIVE_SIZE = 1000
-GENEVALSOL_OUT = lambda run: path.join(
-    RESULTS_BASE, f"run{run}", "evaluation/solution/set.pickle"
+GENEVALSOL_OUT = lambda run, experiment_name: path.join(
+    RESULTS_BASE, f"run{run}/exps/{experiment_name}", "evaluation/solution/set.pickle"
 )
 
 # settings for measure_coverage_rtgae.py

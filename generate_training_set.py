@@ -18,7 +18,9 @@ from rtgae import tree_grammar
 from tree import DirectedTreeNodeform
 
 
-def do_run(run: int, parallelism: int, grammar: tree_grammar.TreeGrammar) -> None:
+def do_run(
+    run: int, experiment_name: str, parallelism: int, grammar: tree_grammar.TreeGrammar
+) -> None:
     rng_seed = int(
         hashlib.sha256(
             f"generate_training_set_seed{config.GENTRAIN_RNG_SEED}_run{run}".encode()
@@ -39,7 +41,7 @@ def do_run(run: int, parallelism: int, grammar: tree_grammar.TreeGrammar) -> Non
         ],
         [],
     )
-    out_file = config.GENTRAIN_OUT(run)
+    out_file = config.GENTRAIN_OUT(run=run, experiment_name=experiment_name)
     pathlib.Path(out_file).parent.mkdir(parents=True, exist_ok=True)
     with open(out_file, "wb") as f:
         pickle.dump(archive, f)
@@ -53,6 +55,7 @@ def main() -> None:
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", "--parallelism", type=int, required=True)
+    parser.add_argument("-e", "--experiment_name", type=str, required=True)
     parser.add_argument(
         "-r",
         "--runs",
@@ -64,7 +67,12 @@ def main() -> None:
     grammar = make_body_rgt()
 
     for run in args.runs:
-        do_run(run=run, parallelism=args.parallelism, grammar=grammar)
+        do_run(
+            run=run,
+            experiment_name=args.experiment_name,
+            parallelism=args.parallelism,
+            grammar=grammar,
+        )
 
 
 if __name__ == "__main__":

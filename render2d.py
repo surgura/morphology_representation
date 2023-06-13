@@ -4,6 +4,8 @@ from revolve2.core.modular_robot import ActiveHinge, Body, Brick, Core, Module
 from graphviz import Digraph
 from collections import deque
 from typing import Tuple, Optional
+import math
+import numpy as np
 
 
 def render_modular_robot2d(body: Body, file_name: str) -> None:
@@ -54,7 +56,12 @@ def _mod_name(mod: Optional[Module]) -> str:
     elif isinstance(mod, Core):
         return "C"
     elif isinstance(mod, ActiveHinge):
-        return "H"
+        if np.isclose(mod.rotation, 0.0):
+            return "Hv"
+        elif np.isclose(mod.rotation, math.pi / 2.0):
+            return "Hh"
+        else:
+            raise NotImplementedError()
     elif isinstance(mod, Brick):
         return "B"
     else:

@@ -3,6 +3,8 @@ from typing import List
 from revolve2.core.modular_robot import ActiveHinge, Body, Brick, Core, Module
 from rtgae import tree_grammar
 from tree import GraphAdjform
+import numpy as np
+import math
 
 
 def make_body_rgt() -> tree_grammar.TreeGrammar:
@@ -12,14 +14,15 @@ def make_body_rgt() -> tree_grammar.TreeGrammar:
     :returns: The regular tree grammar.
     """
 
-    alphabet = ["core", "brick", "active_hinge", "empty"]
+    alphabet = ["core", "brick", "active_hinge_v", "active_hinge_h", "empty"]
     nonterminals = ["start", "child"]
     start = "start"
     rules = {
         "start": [("core", ["child", "child", "child", "child"])],
         "child": [
             ("brick", ["child", "child", "child"]),
-            ("active_hinge", ["child"]),
+            ("active_hinge_v", ["child"]),
+            ("active_hinge_h", ["child"]),
             ("empty", []),
         ],
     }
@@ -36,7 +39,12 @@ def __module_to_tree(module: Module, tree: GraphAdjform) -> None:
     elif isinstance(module, Brick):
         tree.nodes.append("brick")
     elif isinstance(module, ActiveHinge):
-        tree.nodes.append("active_hinge")
+        if np.isclose(module.rotation, 0.0):
+            tree.nodes.append("active_hinge_v")
+        elif np.isclose(module.rotation, math.pi / 2.0):
+            tree.nodes.append("active_hinge_h")
+        else:
+            raise NotImplementedError("Rotation not as expected")
     else:
         raise NotImplementedError()
 
@@ -75,8 +83,12 @@ def __children_to_modules(
             child1 = Brick(0.0)
             parent_module.children[i] = child1
             __children_to_modules(child_node_index, tree, child1)
-        elif tree.nodes[child_node_index] == "active_hinge":
+        elif tree.nodes[child_node_index] == "active_hinge_v":
             child2 = ActiveHinge(0.0)
+            parent_module.children[i] = child2
+            __children_to_modules(child_node_index, tree, child2)
+        elif tree.nodes[child_node_index] == "active_hinge_h":
+            child2 = ActiveHinge(math.pi / 2.0)
             parent_module.children[i] = child2
             __children_to_modules(child_node_index, tree, child2)
         elif (

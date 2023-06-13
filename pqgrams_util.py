@@ -11,8 +11,12 @@ def __tree_to_pqgrams_add_kids(
             kid = PqgramsNode("brick")
             parent_node.addkid(kid)
             __tree_to_pqgrams_add_kids(tree, kid_i, kid)
-        elif tree.nodes[kid_i] == "active_hinge":
-            kid = PqgramsNode("active_hinge")
+        elif tree.nodes[kid_i] == "active_hinge_v":
+            kid = PqgramsNode("active_hinge_v")
+            parent_node.addkid(kid)
+            __tree_to_pqgrams_add_kids(tree, kid_i, kid)
+        elif tree.nodes[kid_i] == "active_hinge_h":
+            kid = PqgramsNode("active_hinge_h")
             parent_node.addkid(kid)
             __tree_to_pqgrams_add_kids(tree, kid_i, kid)
         elif tree.nodes[kid_i] == "empty":

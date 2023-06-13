@@ -82,7 +82,9 @@ def generate_for_benchmark(run: int) -> None:
     raise NotImplementedError()
 
 
-def generate_for_rtgae(run: int, t_dim: int, r_dim: int, parallelism: int) -> None:
+def generate_for_rtgae(
+    run: int, experiment_name: str, t_dim: int, r_dim: int, parallelism: int
+) -> None:
     rng_seed = (
         int(
             hashlib.sha256(
@@ -106,7 +108,9 @@ def generate_for_rtgae(run: int, t_dim: int, r_dim: int, parallelism: int) -> No
         representations, lambda a, b: torch.norm(a - b).item(), parallelism
     )
 
-    out_file = config.GENEVALREPR_OUT_RTGAE(run=run, t_dim=t_dim, r_dim=r_dim)
+    out_file = config.GENEVALREPR_OUT_RTGAE(
+        run=run, experiment_name=experiment_name, t_dim=t_dim, r_dim=r_dim
+    )
     pathlib.Path(out_file).parent.mkdir(parents=True, exist_ok=True)
     with open(out_file, "wb") as f:
         pickle.dump(
@@ -123,6 +127,7 @@ def main() -> None:
 
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", "--parallelism", type=int, required=True)
+    parser.add_argument("-e", "--experiment_name", type=str, required=True)
     args = parser.parse_args()
 
     for run in range(config.RUNS):
@@ -134,7 +139,11 @@ def main() -> None:
                     f"Generating for rtgae run {run} t_dim {t_dim} r_dim {r_dim}"
                 )
                 generate_for_rtgae(
-                    run=run, t_dim=t_dim, r_dim=r_dim, parallelism=args.parallelism
+                    run=run,
+                    experiment_name=args.experiment_name,
+                    t_dim=t_dim,
+                    r_dim=r_dim,
+                    parallelism=args.parallelism,
                 )
 
 

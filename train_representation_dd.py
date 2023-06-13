@@ -129,7 +129,7 @@ def do_run(experiment_name: str, run: int, t_dim_i: int, r_dim_i: int) -> None:
     model = rtgae_model.TreeGrammarAutoEncoder(grammar, dim=t_dim, dim_vae=r_dim)
     model.train()
 
-    train_set = TrainSet(run=run)
+    train_set = TrainSet(run=run, experiment_name=experiment_name)
     train_loader = DataLoader(
         dataset=train_set,
         batch_size=config.TRAIN_BATCH_SIZE,

@@ -50,7 +50,12 @@ def do_run(
     )
 
     reprset: EvaluationRepresentationSet[torch.Tensor]
-    with open(config.GENEVALREPR_OUT_RTGAE(run, t_dim, r_dim), "rb") as f:
+    with open(
+        config.GENEVALREPR_OUT_RTGAE(
+            run=run, experiment_name=experiment_name, t_dim=t_dim, r_dim=r_dim
+        ),
+        "rb",
+    ) as f:
         reprset = pickle.load(f)
 
     mappeds = [
@@ -62,7 +67,9 @@ def do_run(
     mapped_as_pqgrams = [tree_to_pqgrams(mapped) for mapped in mappeds]
 
     solset: List[DirectedTreeNodeform]
-    with open(config.GENEVALSOL_OUT(run), "rb") as f:
+    with open(
+        config.GENEVALSOL_OUT(run=run, experiment_name=experiment_name), "rb"
+    ) as f:
         solset = pickle.load(f)
     sol_as_pqgrams = [tree_to_pqgrams(sol.to_graph_adjform()) for sol in solset]
 

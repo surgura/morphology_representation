@@ -12,8 +12,10 @@ class TrainSet(Dataset[Tuple[DirectedTreeNodeform, GraphAdjform, Profile]]):
     _graph_adj_form: List[GraphAdjform]
     _pqgrams: List[Profile]
 
-    def __init__(self, run: int) -> None:
-        with open(config.GENTRAIN_OUT(run), "rb") as f:
+    def __init__(self, run: int, experiment_name: str) -> None:
+        with open(
+            config.GENTRAIN_OUT(run=run, experiment_name=experiment_name), "rb"
+        ) as f:
             trainset = pickle.load(f)
             assert all([isinstance(item, DirectedTreeNodeform) for item in trainset])
             self._tree_node_form = trainset

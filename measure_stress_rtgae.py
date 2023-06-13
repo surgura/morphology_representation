@@ -51,7 +51,12 @@ def do_run(
     )
 
     reprset: EvaluationRepresentationSet[torch.Tensor]
-    with open(config.GENEVALREPR_OUT_RTGAE(run, t_dim, r_dim), "rb") as f:
+    with open(
+        config.GENEVALREPR_OUT_RTGAE(
+            run=run, experiment_name=experiment_name, t_dim=t_dim, r_dim=r_dim
+        ),
+        "rb",
+    ) as f:
         reprset = pickle.load(f)
 
     # normalized stress or kruskal's stress-1
