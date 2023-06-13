@@ -23,6 +23,7 @@ from make_brain import make_brain
 import cma
 from robot_rgt import tree_to_body
 from tree import GraphAdjform
+import pickle
 
 
 def load_body_model(
@@ -104,8 +105,8 @@ def do_run(
     )
 
     last_best: Optional[
-        Tuple[Tuple[float, ...], Tuple[float, ...]]
-    ] = None  # best body, brain params
+        Tuple[Tuple[float, ...], Tuple[float, ...], float]
+    ] = None  # best body, brain params, fitness before learning
 
     performed_evals = 0
     gen = 0
@@ -118,22 +119,19 @@ def do_run(
         bodies = [
             representation_to_body(solution, body_model) for solution in solutions
         ]
-        optimized_brain_parameters = [
-            model.BrainParameters(b)
-            for b in brain_optimizer.optimize_multiple_parallel(
-                evaluator, rng, bodies, parallelism=(parallelism // 5)
-            )
-        ]
-        modular_robots = [
-            ModularRobot(
-                body, make_brain(robot_to_actor_cpg(body)[1], brain_genotype.parameters)
-            )
-            for body, brain_genotype in zip(bodies, optimized_brain_parameters)
-        ]
-        fitnesses = [
-            -1.0 * x for x in evaluator.evaluate([robot for robot in modular_robots])
-        ]
-        opt.tell(solutions, fitnesses)
+        (
+            fitnesses_before_learning,
+            fitnesses_after_learning,
+            optimized_brain_parameters,
+        ) = zip(
+            *[
+                (fitness_before, fitness_after, model.BrainParameters(params))
+                for fitness_before, fitness_after, params in brain_optimizer.optimize_multiple_parallel(
+                    evaluator, rng, bodies, parallelism=(parallelism // 5)
+                )
+            ]
+        )
+        opt.tell(solutions, [-f for f in fitnesses_after_learning])
 
         performed_evals += len(solutions)
         gen += 1
@@ -142,14 +140,39 @@ def do_run(
         if last_best is None or last_best[0] != currentbestx:
             idx = solutions.index(currentbestx)
             currentbestbrain = optimized_brain_parameters[idx].parameters
-            last_best = (currentbestx, currentbestbrain)
+            currentbestfitnessbeforelearning = fitnesses_before_learning[idx]
+            last_best = (
+                currentbestx,
+                currentbestbrain,
+                currentbestfitnessbeforelearning,
+            )
+
+        sample_pop = model.SamplePop(
+            [
+                model.PopIndividual(
+                    genotype=model.PopBodyParams(body_params),
+                    fitness_before_learning=fitness_before_learning,
+                    fitness=fitness_after_learning,
+                    brain_parameters=model.PopBrainParams(optimized_brain.parameters),
+                )
+                for body_params, fitness_before_learning, fitness_after_learning, optimized_brain in zip(
+                    solutions,
+                    fitnesses_before_learning,
+                    fitnesses_after_learning,
+                    optimized_brain_parameters,
+                )
+            ]
+        )
 
         generation = model.Generation(
             generation_index=gen,
             performed_evaluations=performed_evals,
             body_parameters=model.BodyParameters(last_best[0]),
+            fitness_before_learning=last_best[2],
             fitness=-opt.result.fbest,
             brain_parameters=model.BrainParameters(last_best[1]),
+            sample_pop=sample_pop,
+            cmaes_pickle=pickle.dumps(opt),
         )
         with Session(dbengine, expire_on_commit=False) as ses:
             ses.add(generation)

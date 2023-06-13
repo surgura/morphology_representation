@@ -5,6 +5,7 @@ from .brain_parameters import BrainParameters
 from .body_parameters import BodyParameters
 from .base import Base
 import sqlalchemy
+from .sample_pop import SamplePop
 
 
 class Generation(Base, HasId, orm.MappedAsDataclass):
@@ -27,3 +28,10 @@ class Generation(Base, HasId, orm.MappedAsDataclass):
         init=False,
     )
     brain_parameters: orm.Mapped[BrainParameters] = orm.relationship()
+    sample_pop_id: orm.Mapped[int] = orm.mapped_column(
+        sqlalchemy.ForeignKey(f"{SamplePop.__tablename__}.id"),
+        nullable=False,
+        init=False,
+    )
+    sample_pop: orm.Mapped[SamplePop] = orm.relationship()
+    cmaes_pickle: orm.Mapped[str] = orm.mapped_column(nullable=False)
