@@ -81,7 +81,7 @@ def do_run(
         grammar=grammar,
     )
 
-    evaluator = Evaluator(True, parallelism)
+    evaluator = Evaluator(False, parallelism)
 
     dbengine = open_database_sqlite(
         config.OPTCMAES_OUT(
@@ -127,7 +127,7 @@ def do_run(
             *[
                 (fitness_before, fitness_after, model.BrainParameters(params))
                 for fitness_before, fitness_after, params in brain_optimizer.optimize_multiple_parallel(
-                    evaluator, rng, bodies, parallelism=(parallelism // 5)
+                    evaluator, rng, bodies, parallelism=max(1, parallelism // 5)
                 )
             ]
         )

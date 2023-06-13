@@ -130,16 +130,10 @@ def do_run(experiment_name: str, run: int, optrun: int, parallelism: int) -> Non
         *[
             (fitness_before, fitness_after, model.BrainParameters(params))
             for fitness_before, fitness_after, params in brain_optimizer.optimize_multiple_parallel(
-                evaluator, rng, initial_bodies, parallelism=(parallelism // 5)
+                evaluator, rng, initial_bodies, parallelism=max(1, parallelism // 5)
             )
         ]
     )
-    initial_optimized_brain_parameters = [
-        model.BrainParameters(b)
-        for b in brain_optimizer.optimize_multiple_parallel(
-            evaluator, rng, initial_bodies, parallelism=(parallelism // 5)
-        )
-    ]
     population = model.Population(
         [
             model.Individual(
@@ -191,7 +185,10 @@ def do_run(experiment_name: str, run: int, optrun: int, parallelism: int) -> Non
             *[
                 (fitness_before, fitness_after, model.BrainParameters(params))
                 for fitness_before, fitness_after, params in brain_optimizer.optimize_multiple_parallel(
-                    evaluator, rng, offspring_bodies, parallelism=(parallelism // 5)
+                    evaluator,
+                    rng,
+                    offspring_bodies,
+                    parallelism=max(1, parallelism // 5),
                 )
             ]
         )
