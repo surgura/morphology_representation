@@ -88,7 +88,7 @@ def do_run(experiment_name: str, run: int, t_dim_i: int, r_dim_i: int) -> None:
             train_epoch(model=model, train_loader=train_loader, optimizer=optimizer)
             / config.TRAIN_BATCH_SIZE
         )
-        print(f"{epoch} : {loss}")
+        print(f"{epoch} : {loss=}")
         losses.append(loss)
 
     out_dir = config.TRAIN_OUT_LOSS(

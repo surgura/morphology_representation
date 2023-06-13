@@ -95,6 +95,8 @@ def train_epoch(
         loss.backward()
         optimizer.step()
         train_loss.append(loss.detach().numpy())
+
+        print(f"{recon_loss=} {metric_loss=}")
     return float(np.mean(train_loss))
 
 
@@ -144,7 +146,7 @@ def do_run(experiment_name: str, run: int, t_dim_i: int, r_dim_i: int) -> None:
             train_epoch(model=model, train_loader=train_loader, optimizer=optimizer)
             / config.TRAIN_BATCH_SIZE
         )
-        print(f"{epoch} : {loss}")
+        print(f"{epoch} : {loss=}")
         losses.append(loss)
 
     out_dir = config.TRAIN_DD_OUT_LOSS(
