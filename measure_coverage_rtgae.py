@@ -17,18 +17,27 @@ import joblib
 import pathlib
 
 
-def smallest_distance(
+def smallest_distance_nonzero(
     tree: pqgrams.Profile, compare_to: List[pqgrams.Profile]
 ) -> float:
-    return [tree.edit_distance(other) for other in compare_to]
+    return min(
+        [
+            x
+            for x in [tree.edit_distance(other) for other in compare_to]
+            if not x is np.isclose(x, 0.0)
+        ]
+    )
 
 
-def smallest_distance_multiple(
+def smallest_distance_nonzero_multiple(
     trees: List[pqgrams.Profile],
     compare_to: List[pqgrams.Profile],
     slice: Tuple[int, int],
 ) -> List[float]:
-    return [smallest_distance(tree, compare_to) for tree in trees[slice[0] : slice[1]]]
+    return [
+        smallest_distance_nonzero(tree, compare_to)
+        for tree in trees[slice[0] : slice[1]]
+    ]
 
 
 def do_run(
@@ -43,7 +52,7 @@ def do_run(
     model = TreeGrammarAutoEncoder(grammar, dim=t_dim, dim_vae=r_dim)
     model.load_state_dict(
         torch.load(
-            config.TRAIN_OUT(
+            config.TRAIN_DD_OUT(
                 experiment_name=experiment_name, run=run, t_dim=t_dim, r_dim=r_dim
             )
         )
@@ -83,15 +92,14 @@ def do_run(
     slices[-1] = (slices[-1][0], len(sol_as_pqgrams))
     results: List[List[float]] = joblib.Parallel(n_jobs=parallelism)(
         [
-            joblib.delayed(smallest_distance_multiple)(
+            joblib.delayed(smallest_distance_nonzero_multiple)(
                 sol_as_pqgrams, mapped_as_pqgrams, slice
             )
             for slice in slices
         ]
     )
-    distances = sum(results, [])
-
-    coverage = float(1.0 - np.average(distances))
+    results_combined = sum(results, [])
+    coverage = sum([r**2 for r in results_combined], 0.0)
 
     out_file = config.CVGRTGAE_OUT(
         experiment_name=experiment_name, run=run, t_dim=t_dim, r_dim=r_dim
