@@ -20,7 +20,7 @@ def do_run(experiment_name: str, run: int, t_dim_i: int, r_dim_i: int) -> None:
     model = TreeGrammarAutoEncoder(grammar, dim=t_dim, dim_vae=r_dim)
     model.load_state_dict(
         torch.load(
-            config.TRAIN_OUT(
+            config.TRAIN_DD_OUT(
                 experiment_name=experiment_name, run=run, t_dim=t_dim, r_dim=r_dim
             )
         )
@@ -29,7 +29,7 @@ def do_run(experiment_name: str, run: int, t_dim_i: int, r_dim_i: int) -> None:
     for i in range(100):
         torch.manual_seed(i)
         repr1 = torch.rand(r_dim) * 2.0 - 1.0
-        repr2 = repr1 + torch.normal(torch.zeros(r_dim), 0.2 * torch.ones(r_dim))
+        repr2 = repr1 + 0.25 * (torch.rand(r_dim) * 2.0 - 1.0).norm()
         tree1 = GraphAdjform(
             *model.decode(repr1, max_size=config.MODEL_MAX_MODULES_INCL_EMPTY)[:2]
         )
