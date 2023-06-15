@@ -58,7 +58,7 @@ TRAIN_DD_OUT = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.joi
     f"run{run}",
     f"exps/{experiment_name}/trained_representation_dd/t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}/model.state",
 )
-TRAIN_EPOCHS = 2
+TRAIN_EPOCHS = 200
 TRAIN_BATCH_SIZE = 200
 TRAIN_DD_TRIPLET_FACTORS = [1.0, 5.0, 10.0]
 TRAIN_OUT_LOSS = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.join(
