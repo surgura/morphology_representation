@@ -41,6 +41,8 @@ def train_epoch(
     model: rtgae_model.TreeGrammarAutoEncoder,
     train_loader: DataLoader[Tuple[DirectedTreeNodeform, GraphAdjform, Profile]],
     optimizer: torch.optim.Optimizer,
+    margin: float,
+    gain: float,
 ) -> Tuple[float, float, float]:  # total loss, reconloss, metricloss
     train_loss = []
     aggr_recon_loss = []
@@ -98,7 +100,7 @@ def train_epoch(
                     positive_adj=graphs[positive_i].adj,
                     negative_nodes=graphs[negative_i].nodes,
                     negative_adj=graphs[negative_i].adj,
-                    margin=config.TRAIN_DD_MARGIN,
+                    margin=margin,
                 )
             )
 
@@ -106,7 +108,7 @@ def train_epoch(
             loss = recon_loss
         else:
             metric_loss = sum(metric_losses[1:], metric_losses[0])
-            loss = recon_loss + config.TRAIN_DD_TRIPLET_FACTOR * metric_loss
+            loss = recon_loss + gain * metric_loss
 
         optimizer.zero_grad()
         loss.backward()
@@ -130,7 +132,14 @@ def collate(data):
     ]
 
 
-def do_run(experiment_name: str, run: int, t_dim_i: int, r_dim_i: int) -> None:
+def do_run(
+    experiment_name: str,
+    run: int,
+    t_dim_i: int,
+    r_dim_i: int,
+    margin_i: int,
+    gain_i: int,
+) -> None:
     logging.basicConfig(
         level=logging.INFO,
         format="[%(asctime)s] [%(levelname)s] [%(module)s] %(message)s",
@@ -138,10 +147,12 @@ def do_run(experiment_name: str, run: int, t_dim_i: int, r_dim_i: int) -> None:
 
     t_dim = config.MODEL_T_DIMS[t_dim_i]
     r_dim = config.MODEL_R_DIMS[r_dim_i]
+    margin = config.TRAIN_DD_MARGINS[margin_i]
+    gain = config.TRAIN_DD_TRIPLET_FACTORS[gain_i]
 
     rng_seed = int(
         hashlib.sha256(
-            f"train_representation_seed{config.TRAIN_RNG_SEED}_run{run}_t_dim{t_dim}_r_dim{r_dim}".encode()
+            f"train_representation_seed{config.TRAIN_RNG_SEED}_run{run}_t_dim{t_dim}_r_dim{r_dim}_margin{margin}_gain{gain}".encode()
         ).hexdigest(),
         16,
     )
@@ -173,7 +184,11 @@ def do_run(experiment_name: str, run: int, t_dim_i: int, r_dim_i: int) -> None:
         models_before_epoch.append(stream.read())
 
         loss, recon_loss, metric_loss = train_epoch(
-            model=model, train_loader=train_loader, optimizer=optimizer
+            model=model,
+            train_loader=train_loader,
+            optimizer=optimizer,
+            margin=margin,
+            gain=gain,
         )
         loss /= config.TRAIN_BATCH_SIZE
         recon_loss /= config.TRAIN_BATCH_SIZE
@@ -184,7 +199,12 @@ def do_run(experiment_name: str, run: int, t_dim_i: int, r_dim_i: int) -> None:
         metric_losses.append(metric_loss)
 
     out_dir = config.TRAIN_DD_OUT_LOSS(
-        experiment_name=experiment_name, run=run, t_dim=t_dim, r_dim=r_dim
+        experiment_name=experiment_name,
+        run=run,
+        t_dim=t_dim,
+        r_dim=r_dim,
+        margin=margin,
+        gain=gain,
     )
     pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
     with open(out_dir, "wb") as f:
@@ -199,7 +219,12 @@ def do_run(experiment_name: str, run: int, t_dim_i: int, r_dim_i: int) -> None:
         )
 
     out_dir = config.TRAIN_DD_OUT(
-        experiment_name=experiment_name, run=run, t_dim=t_dim, r_dim=r_dim
+        experiment_name=experiment_name,
+        run=run,
+        t_dim=t_dim,
+        r_dim=r_dim,
+        margin=margin,
+        gain=gain,
     )
     pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
     torch.save(model.state_dict(), out_dir)
@@ -230,20 +255,34 @@ def main() -> None:
         type=indices_range.indices_type(range(len(config.MODEL_T_DIMS))),
         required=True,
     )
+    parser.add_argument(
+        "--margins",
+        type=indices_range.indices_type(range(len(config.TRAIN_DD_MARGINS))),
+        required=True,
+    )
+    parser.add_argument(
+        "--gains",
+        type=indices_range.indices_type(range(len(config.TRAIN_DD_TRIPLET_FACTORS))),
+        required=True,
+    )
     args = parser.parse_args()
 
     jobs = []
     for run in args.runs:
         for t_dim_i in args.t_dims:
             for r_dim_i in args.r_dims:
-                jobs.append(
-                    joblib.delayed(do_run)(
-                        experiment_name=args.experiment_name,
-                        run=run,
-                        t_dim_i=t_dim_i,
-                        r_dim_i=r_dim_i,
-                    )
-                )
+                for margin_i in args.margins:
+                    for gain_i in args.gains:
+                        jobs.append(
+                            joblib.delayed(do_run)(
+                                experiment_name=args.experiment_name,
+                                run=run,
+                                t_dim_i=t_dim_i,
+                                r_dim_i=r_dim_i,
+                                margin_i=margin_i,
+                                gain_i=gain_i,
+                            )
+                        )
 
     joblib.Parallel(n_jobs=args.parallelism)(jobs)
 

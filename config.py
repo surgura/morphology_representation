@@ -29,16 +29,16 @@ RENDERTRAIN_OUT = lambda run, experiment_name, item_i: path.join(
 MODEL_T_DIMS = [
     # 16,
     128,
-    256,
-    512,
-    768,
+    # 256,
+    # 512,
+    # 768,
 ]  # tree encoding dimensionality. 'dim' in rtgae.
 MODEL_R_DIMS = [
     24,
-    48,
-    72,
-    216,
-    288,
+    # 48,
+    # 72,
+    # 216,
+    # 288,
 ]  # 8, 24  # representation dimensionality. 'dim_vae' in rtgae.
 MODEL_MAX_MODULES = 10
 MODEL_REPR_DOMAIN = [-1.0, 1.0]
@@ -48,30 +48,30 @@ MODEL_MAX_MODULES_INCL_EMPTY = (
 
 # settings for train_representation.py
 TRAIN_RNG_SEED = 23875987872
-TRAIN_OUT = lambda experiment_name, run, t_dim, r_dim: path.join(
+TRAIN_OUT = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"exps/{experiment_name}/trained_representation/t_dim{t_dim}___r_dim{r_dim}/model.state",
+    f"exps/{experiment_name}/trained_representation/t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}/model.state",
 )
-TRAIN_DD_OUT = lambda experiment_name, run, t_dim, r_dim: path.join(
+TRAIN_DD_OUT = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"exps/{experiment_name}/trained_representation_dd/t_dim{t_dim}___r_dim{r_dim}/model.state",
+    f"exps/{experiment_name}/trained_representation_dd/t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}/model.state",
 )
-TRAIN_EPOCHS = 200
+TRAIN_EPOCHS = 2
 TRAIN_BATCH_SIZE = 200
-TRAIN_DD_TRIPLET_FACTOR = 1.0
-TRAIN_OUT_LOSS = lambda experiment_name, run, t_dim, r_dim: path.join(
+TRAIN_DD_TRIPLET_FACTORS = [1.0, 5.0, 10.0]
+TRAIN_OUT_LOSS = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"exps/{experiment_name}/trained_representation/t_dim{t_dim}___r_dim{r_dim}/loss.pickle",
+    f"exps/{experiment_name}/trained_representation/t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}/loss.pickle",
 )
-TRAIN_DD_OUT_LOSS = lambda experiment_name, run, t_dim, r_dim: path.join(
+TRAIN_DD_OUT_LOSS = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"exps/{experiment_name}/trained_representation_dd/t_dim{t_dim}___r_dim{r_dim}/loss.pickle",
+    f"exps/{experiment_name}/trained_representation_dd/t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}/loss.pickle",
 )
-TRAIN_DD_MARGIN = 0.05
+TRAIN_DD_MARGINS = [0.05, 0.2]
 
 # settings for plot_train_loss.py
 PLTTRAIN_OUT = lambda experiment_name, run, t_dim, r_dim: path.join(
