@@ -13,13 +13,12 @@ import config
 import indices_range
 from robot_rgt import make_body_rgt
 from rtgae import recursive_tree_grammar_auto_encoder as rtgae_model
-import matplotlib.pyplot as plt
-import pandas
 from train_set import TrainSet
 from torch.utils.data import DataLoader
 from pqgrams import Profile
 from tree import DirectedTreeNodeform, GraphAdjform
 from pqgrams_util import tree_to_pqgrams
+import io
 
 
 def compute_distance_matrix(graphs: List[GraphAdjform]):
@@ -42,7 +41,7 @@ def train_epoch(
     model: rtgae_model.TreeGrammarAutoEncoder,
     train_loader: DataLoader[Tuple[DirectedTreeNodeform, GraphAdjform, Profile]],
     optimizer: torch.optim.Optimizer,
-):
+) -> Tuple[float, float, float]:  # total loss, reconloss, metricloss
     train_loss = []
     aggr_recon_loss = []
     aggr_metric_loss = []
@@ -116,10 +115,11 @@ def train_epoch(
 
         aggr_recon_loss.append(recon_loss.detach().numpy())
         aggr_metric_loss.append(metric_loss.detach().numpy())
-    print(
-        f"recon={float(np.mean(aggr_recon_loss))} metric={float(np.mean(aggr_metric_loss))}"
+    return (
+        float(np.mean(train_loss)),
+        float(np.mean(aggr_recon_loss)),
+        float(np.mean(aggr_metric_loss)),
     )
-    return float(np.mean(train_loss))
 
 
 def collate(data):
@@ -162,21 +162,41 @@ def do_run(experiment_name: str, run: int, t_dim_i: int, r_dim_i: int) -> None:
     )
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-05)
 
+    models_before_epoch = []
     losses = []
+    recon_losses = []
+    metric_losses = []
     for epoch in range(config.TRAIN_EPOCHS):
-        loss = (
-            train_epoch(model=model, train_loader=train_loader, optimizer=optimizer)
-            / config.TRAIN_BATCH_SIZE
+        stream = io.BytesIO()
+        torch.save(model.state_dict(), stream)
+        stream.seek(0)
+        models_before_epoch.append(stream.read())
+
+        loss, recon_loss, metric_loss = train_epoch(
+            model=model, train_loader=train_loader, optimizer=optimizer
         )
-        print(f"{epoch} : {loss=}")
+        loss /= config.TRAIN_BATCH_SIZE
+        recon_loss /= config.TRAIN_BATCH_SIZE
+        metric_loss /= config.TRAIN_BATCH_SIZE
+        logging.info(f"{epoch} : {loss=} {recon_loss=} {metric_loss=}")
         losses.append(loss)
+        recon_losses.append(recon_loss)
+        metric_losses.append(metric_loss)
 
     out_dir = config.TRAIN_DD_OUT_LOSS(
         experiment_name=experiment_name, run=run, t_dim=t_dim, r_dim=r_dim
     )
     pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
     with open(out_dir, "wb") as f:
-        pickle.dump(losses, f)
+        pickle.dump(
+            {
+                "losses": losses,
+                "recon_losses": recon_losses,
+                "metric_losses": metric_losses,
+                "models_before_epoch": models_before_epoch,
+            },
+            f,
+        )
 
     out_dir = config.TRAIN_DD_OUT(
         experiment_name=experiment_name, run=run, t_dim=t_dim, r_dim=r_dim
