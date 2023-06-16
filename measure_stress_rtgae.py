@@ -46,7 +46,9 @@ def do_run(
     margin = config.TRAIN_DD_MARGINS[margin_i]
     gain = config.TRAIN_DD_TRIPLET_FACTORS[gain_i]
 
-    logging.info(f"Measuring coverage for RTGAE {run=} {t_dim=} {r_dim=}")
+    logging.info(
+        f"Measuring coverage for RTGAE {run=} {t_dim=} {r_dim=} {margin=} {gain=}"
+    )
 
     grammar = make_body_rgt()
     model = TreeGrammarAutoEncoder(grammar, dim=t_dim, dim_vae=r_dim)
