@@ -7,21 +7,25 @@ from pqgrams import Profile
 from pqgrams_util import tree_to_pqgrams
 from apted_util import tree_to_apted
 import apted
+import torch
 
 
 class TrainSet(Dataset[Tuple[DirectedTreeNodeform, GraphAdjform, Profile]]):
     _tree_node_form: List[DirectedTreeNodeform]
     _graph_adj_form: List[GraphAdjform]
     _pqgrams: List[Profile]
-    _apted: List[apted.Tree]
+    _apted: List[apted.helpers.Tree]
+    distance_matrix: torch.Tensor
 
     def __init__(self, run: int, experiment_name: str) -> None:
         with open(
             config.GENTRAIN_OUT(run=run, experiment_name=experiment_name), "rb"
         ) as f:
             trainset = pickle.load(f)
-            assert all([isinstance(item, DirectedTreeNodeform) for item in trainset])
-            self._tree_node_form = trainset
+            trees = trainset["trees"]
+            assert all([isinstance(item, DirectedTreeNodeform) for item in trees])
+            self._tree_node_form = trees
+            self.distance_matrix = trainset["distance_matrix"]
         self._graph_adj_form = [
             tree.to_graph_adjform() for tree in self._tree_node_form
         ]
@@ -33,9 +37,11 @@ class TrainSet(Dataset[Tuple[DirectedTreeNodeform, GraphAdjform, Profile]]):
 
     def __getitem__(
         self, index: int
-    ) -> Tuple[DirectedTreeNodeform, GraphAdjform, Profile]:
+    ) -> Tuple[int, DirectedTreeNodeform, GraphAdjform, Profile, apted.helpers.Tree]:
         return (
+            index,
             self._tree_node_form[index],
             self._graph_adj_form[index],
             self._pqgrams[index],
+            self._apted[index],
         )

@@ -37,26 +37,46 @@ def compute_distance_matrix(graphs: List[GraphAdjform]):
     return distance_matrix
 
 
+def sub_distance_matrix(distances: torch.Tensor, set_indices: List[int]):
+    n = len(set_indices)
+
+    distance_matrix = torch.zeros((n, n))
+
+    for i in range(n):
+        for j in range(i, n):
+            dist = aspqgrams[i].edit_distance(aspqgrams[j])
+            distance_matrix[i, j] = dist
+            distance_matrix[j, i] = dist
+
+    return distance_matrix
+
+
 def train_epoch(
     model: rtgae_model.TreeGrammarAutoEncoder,
     train_loader: DataLoader[Tuple[DirectedTreeNodeform, GraphAdjform, Profile]],
     optimizer: torch.optim.Optimizer,
     margin: float,
     gain: float,
+    distance_matrix_all: torch.Tensor,
 ) -> Tuple[float, float, float]:  # total loss, reconloss, metricloss
     train_loss = []
     aggr_recon_loss = []
     aggr_metric_loss = []
     for batch in train_loader:
-        graphs = [GraphAdjform(graph["nodes"], graph["adj"]) for graph in batch]
-
+        graphs, set_indices = zip(
+            *[
+                (GraphAdjform(item["nodes"], item["adj"]), item["set_index"])
+                for item in batch
+            ]
+        )
+        set_indices_tensor = torch.tensor(set_indices, dtype=torch.long)
         recon_losses = [
             model.compute_loss(graph.nodes, graph.adj, beta=0.01, sigma_scaling=0.1)
             for graph in graphs
         ]
         recon_loss = sum(recon_losses[1:], recon_losses[0])
 
-        distance_matrix = compute_distance_matrix(graphs)
+        distance_matrix = distance_matrix_all[set_indices_tensor][:, set_indices_tensor]
         sorted_ind = distance_matrix.argsort(dim=1)
 
         metric_losses = []
@@ -125,10 +145,14 @@ def train_epoch(
 
 
 def collate(data):
-    _, graph_adj_forms, _ = zip(*data)
+    set_indices, _, graph_adj_forms, _, _ = zip(*data)
     return [
-        {"nodes": graph_adj_form.nodes, "adj": graph_adj_form.adj}
-        for graph_adj_form in graph_adj_forms
+        {
+            "nodes": graph_adj_form.nodes,
+            "adj": graph_adj_form.adj,
+            "set_index": set_index,
+        }
+        for set_index, graph_adj_form in zip(set_indices, graph_adj_forms)
     ]
 
 
@@ -189,6 +213,7 @@ def do_run(
             optimizer=optimizer,
             margin=margin,
             gain=gain,
+            distance_matrix_all=train_set.distance_matrix,
         )
         loss /= config.TRAIN_BATCH_SIZE
         recon_loss /= config.TRAIN_BATCH_SIZE

@@ -16,6 +16,25 @@ import indices_range
 from robot_rgt import make_body_rgt
 from rtgae import tree_grammar
 from tree import DirectedTreeNodeform
+import torch
+from apted_util import tree_to_apted, apted_tree_edit_distance
+
+
+def compute_distance_matrix(trees: List[DirectedTreeNodeform]) -> torch.Tensor:
+    n = len(trees)
+
+    distance_matrix = torch.zeros((n, n))
+
+    asapted = [tree_to_apted(tree.to_graph_adjform()) for tree in trees]
+
+    for i in range(n):
+        print(i)
+        for j in range(i, n):
+            dist = apted_tree_edit_distance(asapted[i], asapted[j])
+            distance_matrix[i, j] = dist
+            distance_matrix[j, i] = dist
+
+    return distance_matrix
 
 
 def do_run(
@@ -41,10 +60,11 @@ def do_run(
         ],
         [],
     )
+    distance_matrix = compute_distance_matrix(archive)
     out_file = config.GENTRAIN_OUT(run=run, experiment_name=experiment_name)
     pathlib.Path(out_file).parent.mkdir(parents=True, exist_ok=True)
     with open(out_file, "wb") as f:
-        pickle.dump(archive, f)
+        pickle.dump({"trees": archive, "distance_matrix": distance_matrix}, f)
 
 
 def main() -> None:
