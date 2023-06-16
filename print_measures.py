@@ -16,30 +16,36 @@ def main() -> None:
     experiment_name = args.experiment_name
 
     for run in range(config.RUNS):
-        for t_dim_i in range(len(config.MODEL_T_DIMS)):
-            for r_dim_i in range(len(config.MODEL_R_DIMS)):
-                t_dim = config.MODEL_T_DIMS[t_dim_i]
-                r_dim = config.MODEL_R_DIMS[r_dim_i]
-                with open(
-                    config.CVGRTGAE_OUT(
-                        experiment_name=experiment_name,
-                        run=run,
-                        t_dim=t_dim,
-                        r_dim=r_dim,
-                    ),
-                    "rb",
-                ) as fcvg, open(
-                    config.STRESSRTGAE_OUT(
-                        experiment_name=experiment_name,
-                        run=run,
-                        t_dim=t_dim,
-                        r_dim=r_dim,
-                    ),
-                    "rb",
-                ) as fstress:
-                    coverage = pickle.load(fcvg)
-                    stress = pickle.load(fstress)["stress"]
-                    print(f"{coverage=} {stress=} {t_dim=} {r_dim=} {run=}")
+        for t_dim in config.MODEL_T_DIMS:
+            for r_dim in config.MODEL_R_DIMS:
+                for margin in config.TRAIN_DD_MARGINS:
+                    for gain in config.TRAIN_DD_TRIPLET_FACTORS:
+                        with open(
+                            config.CVGRTGAE_OUT(
+                                experiment_name=experiment_name,
+                                run=run,
+                                t_dim=t_dim,
+                                r_dim=r_dim,
+                                margin=margin,
+                                gain=gain,
+                            ),
+                            "rb",
+                        ) as fcvg, open(
+                            config.STRESSRTGAE_OUT(
+                                experiment_name=experiment_name,
+                                run=run,
+                                t_dim=t_dim,
+                                r_dim=r_dim,
+                                margin=margin,
+                                gain=gain,
+                            ),
+                            "rb",
+                        ) as fstress:
+                            coverage = pickle.load(fcvg)
+                            stress = pickle.load(fstress)["stress"]
+                            print(
+                                f"{coverage=} {stress=} {t_dim=} {r_dim=} {margin=} {gain=} {run=}"
+                            )
 
 
 if __name__ == "__main__":

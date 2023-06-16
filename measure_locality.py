@@ -11,6 +11,8 @@ from tree import GraphAdjform
 from pqgrams_util import tree_to_pqgrams
 import pathlib
 import math
+import hashlib
+from torch.nn.functional import normalize
 
 
 def do_run(
@@ -27,8 +29,20 @@ def do_run(
     margin = config.TRAIN_DD_MARGINS[margin_i]
     gain = config.TRAIN_DD_TRIPLET_FACTORS[gain_i]
 
+    rng_seed = (
+        int(
+            hashlib.sha256(
+                f"measure_locality_seed{config.LOCRTGAE_RNG_SEED}_rtgae_run{run}_r_dim{r_dim}_margin{margin}_gain{gain}".encode()
+            ).hexdigest(),
+            16,
+        )
+        % 2**64
+    )
+    rng = torch.Generator()
+    rng.manual_seed(rng_seed)
+
     logging.info(
-        f"Measuring stress for RTGAE {run=} {t_dim=} {r_dim=} {margin=} {gain=}"
+        f"Measuring locality for RTGAE {run=} {t_dim=} {r_dim=} {margin=} {gain=}"
     )
 
     grammar = make_body_rgt()
@@ -55,9 +69,6 @@ def do_run(
     ) as f:
         reprset = pickle.load(f)
 
-    # normalized stress or kruskal's stress-1
-    # S = sqrt[ ( sum over i,j (d_ij(X) - d_ij(Y))^2 ) / ( sum over i,j (d_ij(X))^2 ) ]
-
     repr_mapped_as_pqgrams = {
         repr: tree_to_pqgrams(
             GraphAdjform(
@@ -67,24 +78,31 @@ def do_run(
         for repr in reprset.representations
     }
 
-    dists_in_solspace = [
-        repr_mapped_as_pqgrams[a].edit_distance(repr_mapped_as_pqgrams[b])
-        for (a, b) in reprset.pairs
-    ]
+    dists_in_solspace = []
+    dists_in_reprspace = []
+    for repr in reprset.representations:
+        for _ in range(10):
+            neighbor = repr + 0.2 * torch.rand(size=(1,), generator=rng) * normalize(
+                torch.rand(size=(r_dim,), generator=rng) * 2.0 - 1.0, dim=0
+            )
 
-    stress = math.sqrt(
-        sum(
-            [
-                (dist_repr - dist_sol) ** 2
-                for dist_repr, dist_sol in zip(reprset.distances, dists_in_solspace)
-            ]
-        )
-        / sum([dist_repr**2 for dist_repr in reprset.distances])
-    )
+            repr_dist = torch.norm(repr - neighbor).item()
+            sol_dist = repr_mapped_as_pqgrams[repr].edit_distance(
+                tree_to_pqgrams(
+                    GraphAdjform(
+                        *model.decode(
+                            neighbor, max_size=config.MODEL_MAX_MODULES_INCL_EMPTY
+                        )[:2]
+                    )
+                )
+            )
 
-    dist_pairs = list(zip(reprset.distances, dists_in_solspace))
+            dists_in_reprspace.append(repr_dist)
+            dists_in_solspace.append(sol_dist)
 
-    out_file = config.STRESSRTGAE_OUT(
+    dist_pairs = list(zip(dists_in_reprspace, dists_in_solspace))
+
+    out_file = config.LOCRTGAE_OUT(
         experiment_name=experiment_name,
         run=run,
         t_dim=t_dim,
@@ -94,7 +112,7 @@ def do_run(
     )
     pathlib.Path(out_file).parent.mkdir(parents=True, exist_ok=True)
     with open(out_file, "wb") as f:
-        pickle.dump({"stress": stress, "dist_pairs": dist_pairs}, f)
+        pickle.dump({"dist_pairs": dist_pairs}, f)
 
 
 def main() -> None:

@@ -60,56 +60,90 @@ def main() -> None:
     for run in range(config.RUNS):
         run_records_coverage = []
         run_records_stress = []
-        for t_dim_i in range(len(config.MODEL_T_DIMS)):
-            for r_dim_i in range(len(config.MODEL_R_DIMS)):
-                t_dim = config.MODEL_T_DIMS[t_dim_i]
-                r_dim = config.MODEL_R_DIMS[r_dim_i]
-                with open(
-                    config.CVGRTGAE_OUT(
-                        experiment_name=experiment_name,
-                        run=run,
-                        t_dim=t_dim,
-                        r_dim=r_dim,
-                    ),
-                    "rb",
-                ) as f:
-                    coverage = pickle.load(f)
-                    assert isinstance(coverage, float)
-                    run_records_coverage.append((t_dim, r_dim, coverage))
-                    all_records_coverage.append((run, t_dim, r_dim, coverage))
+        for t_dim in config.MODEL_T_DIMS:
+            for r_dim in config.MODEL_R_DIMS:
+                for margin in config.TRAIN_DD_MARGINS:
+                    for gain in config.TRAIN_DD_TRIPLET_FACTORS:
+                        with open(
+                            config.CVGRTGAE_OUT(
+                                experiment_name=experiment_name,
+                                run=run,
+                                t_dim=t_dim,
+                                r_dim=r_dim,
+                                margin=margin,
+                                gain=gain,
+                            ),
+                            "rb",
+                        ) as f:
+                            coverage = pickle.load(f)
+                            assert isinstance(coverage, float)
+                            run_records_coverage.append((t_dim, r_dim, coverage))
+                            all_records_coverage.append((run, t_dim, r_dim, coverage))
 
-                with open(
-                    config.STRESSRTGAE_OUT(
-                        experiment_name=experiment_name,
-                        run=run,
-                        t_dim=t_dim,
-                        r_dim=r_dim,
-                    ),
-                    "rb",
-                ) as f:
-                    measures = pickle.load(f)
-                    stress = measures["stress"]
-                    assert isinstance(stress, float)
-                    run_records_stress.append((t_dim, r_dim, stress))
-                    all_records_stress.append((run, t_dim, r_dim, stress))
+                        with open(
+                            config.STRESSRTGAE_OUT(
+                                experiment_name=experiment_name,
+                                run=run,
+                                t_dim=t_dim,
+                                r_dim=r_dim,
+                                margin=margin,
+                                gain=gain,
+                            ),
+                            "rb",
+                        ) as f:
+                            measures = pickle.load(f)
+                            stress = measures["stress"]
+                            assert isinstance(stress, float)
+                            run_records_stress.append((t_dim, r_dim, stress))
+                            all_records_stress.append((run, t_dim, r_dim, stress))
 
-                    pairs: Tuple[float, float] = measures["dist_pairs"]
-                    plot_pairs(
-                        pairs,
-                        config.PLTMSR_OUT_PAIRS(
-                            experiment_name=experiment_name,
-                            run=run,
-                            t_dim=t_dim,
-                            r_dim=r_dim,
-                        ),
-                        "representation_distance",
-                        "solution_distance",
-                    )
+                            pairs: Tuple[float, float] = measures["dist_pairs"]
+                            plot_pairs(
+                                pairs,
+                                config.PLTMSR_OUT_PAIRS(
+                                    experiment_name=experiment_name,
+                                    run=run,
+                                    t_dim=t_dim,
+                                    r_dim=r_dim,
+                                    margin=margin,
+                                    gain=gain,
+                                ),
+                                "representation_distance",
+                                "solution_distance",
+                            )
+
+                        with open(
+                            config.LOCRTGAE_OUT(
+                                experiment_name=experiment_name,
+                                run=run,
+                                t_dim=t_dim,
+                                r_dim=r_dim,
+                                margin=margin,
+                                gain=gain,
+                            ),
+                            "rb",
+                        ) as f:
+                            measures = pickle.load(f)
+                            pairs: Tuple[float, float] = measures["dist_pairs"]
+                            plot_pairs(
+                                pairs,
+                                config.PLTMSR_OUT_LOC_PAIRS(
+                                    experiment_name=experiment_name,
+                                    run=run,
+                                    t_dim=t_dim,
+                                    r_dim=r_dim,
+                                    margin=margin,
+                                    gain=gain,
+                                ),
+                                "representation_distance",
+                                "solution_distance",
+                            )
         df_coverage = pandas.DataFrame.from_records(
-            run_records_coverage, columns=["t_dim", "r_dim", "coverage"]
+            run_records_coverage,
+            columns=["t_dim", "r_dim", "margin", "gain", "coverage"],
         )
         df_stress = pandas.DataFrame.from_records(
-            run_records_stress, columns=["t_dim", "r_dim", "stress"]
+            run_records_stress, columns=["t_dim", "r_dim", "margin", "gain", "stress"]
         )
         plot_measure(
             df_coverage,
@@ -127,10 +161,12 @@ def main() -> None:
         )
 
     df_coverage = pandas.DataFrame.from_records(
-        all_records_coverage, columns=["run", "t_dim", "r_dim", "coverage"]
+        all_records_coverage,
+        columns=["run", "t_dim", "r_dim", "margin", "gain", "coverage"],
     )
     df_stress = pandas.DataFrame.from_records(
-        all_records_stress, columns=["run", "t_dim", "r_dim", "stress"]
+        all_records_stress,
+        columns=["run", "t_dim", "r_dim", "margin", "gain", "stress"],
     )
 
     # TODO average multiple runs

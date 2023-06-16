@@ -26,55 +26,106 @@ def main() -> None:
     for run in range(config.RUNS):
         for t_dim in config.MODEL_T_DIMS:
             for r_dim in config.MODEL_R_DIMS:
-                in_dir = config.TRAIN_OUT_LOSS(
-                    experiment_name=experiment_name,
-                    run=run,
-                    t_dim=t_dim,
-                    r_dim=r_dim,
-                )
-                with open(in_dir, "rb") as f:
-                    losses = pickle.load(f)
+                for margin in config.TRAIN_DD_MARGINS:
+                    for gain in config.TRAIN_DD_TRIPLET_FACTORS:
+                        in_dir = config.TRAIN_DD_OUT_LOSS(
+                            experiment_name=experiment_name,
+                            run=run,
+                            t_dim=t_dim,
+                            r_dim=r_dim,
+                            margin=margin,
+                            gain=gain,
+                        )
+                        with open(in_dir, "rb") as f:
+                            all_losses = pickle.load(f)
+                        losses = all_losses["losses"]
+                        recon_losses = all_losses["recon_losses"]
+                        metric_losses = all_losses["metric_losses"]
 
-                df = pandas.DataFrame.from_records(
-                    zip([i for i in range(len(losses))], losses),
-                    columns=("epoch", "loss"),
-                )
-                ax = df.plot(x="epoch", y="loss", legend=False)
-                ax.set_ylabel("loss")
+                        df = pandas.DataFrame.from_records(
+                            zip(
+                                [i for i in range(len(losses))],
+                                losses,
+                                recon_losses,
+                                metric_losses,
+                            ),
+                            columns=("epoch", "loss", "recon_loss", "metric_loss"),
+                        )
+                        ax = df.plot(x="epoch", y="loss", legend=False)
+                        df.plot(ax=ax, x="epoch", y="recon_loss", legend=False)
+                        df.plot(ax=ax, x="epoch", y="metric_loss", legend=False)
+                        ax.set_ylabel("loss")
 
-                out_dir = config.PLTTRAIN_OUT(
-                    experiment_name=experiment_name, run=run, t_dim=t_dim, r_dim=r_dim
-                )
-                pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
-                plt.savefig(out_dir)
-                plt.close()
+                        out_dir = config.PLTTRAIN_OUT(
+                            experiment_name=experiment_name,
+                            run=run,
+                            t_dim=t_dim,
+                            r_dim=r_dim,
+                            margin=margin,
+                            gain=gain,
+                        )
+                        pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
+                        plt.savefig(out_dir)
+                        plt.close()
 
         ax = plt.subplot()
         ax.set_ylabel("loss")
         for t_dim in config.MODEL_T_DIMS:
             for r_dim in config.MODEL_R_DIMS:
-                in_dir = config.TRAIN_OUT_LOSS(
-                    experiment_name=experiment_name,
-                    run=run,
-                    t_dim=t_dim,
-                    r_dim=r_dim,
-                )
-                with open(in_dir, "rb") as f:
-                    losses = pickle.load(f)
+                for margin in config.TRAIN_DD_MARGINS:
+                    for gain in config.TRAIN_DD_TRIPLET_FACTORS:
+                        in_dir = config.TRAIN_DD_OUT_LOSS(
+                            experiment_name=experiment_name,
+                            run=run,
+                            t_dim=t_dim,
+                            r_dim=r_dim,
+                            margin=margin,
+                            gain=gain,
+                        )
+                        with open(in_dir, "rb") as f:
+                            all_losses = pickle.load(f)
+                        losses = all_losses["losses"]
+                        recon_losses = all_losses["recon_losses"]
+                        metric_losses = all_losses["metric_losses"]
 
-                df = pandas.DataFrame.from_records(
-                    zip([i for i in range(len(losses))], losses),
-                    columns=("epoch", "loss"),
-                )
-                ax = df.plot(x="epoch", y="loss", ax=ax, label=f"t={t_dim} r={r_dim}")
-                ax.text(
-                    df["epoch"].iloc[-1],
-                    df["loss"].iloc[-1],
-                    f"t={t_dim} r={r_dim}",
-                    fontsize=9,
-                    va="center",
-                    ha="left",
-                )
+                        df = pandas.DataFrame.from_records(
+                            zip(
+                                [i for i in range(len(losses))],
+                                losses,
+                                recon_losses,
+                                metric_losses,
+                            ),
+                            columns=("epoch", "loss", "recon_loss", "metric_loss"),
+                        )
+                        df.plot(ax=ax, x="epoch", y="loss", legend=False)
+                        ax.text(
+                            df["epoch"].iloc[-1],
+                            df["loss"].iloc[-1],
+                            f"loss t={t_dim} r={r_dim} margin={margin} gain={gain}",
+                            fontsize=9,
+                            va="center",
+                            ha="left",
+                        )
+
+                        df.plot(ax=ax, x="epoch", y="recon_loss", legend=False)
+                        ax.text(
+                            df["epoch"].iloc[-1],
+                            df["recon_loss"].iloc[-1],
+                            f"recon_loss t={t_dim} r={r_dim} margin={margin} gain={gain}",
+                            fontsize=9,
+                            va="center",
+                            ha="left",
+                        )
+
+                        df.plot(ax=ax, x="epoch", y="metric_loss", legend=False)
+                        ax.text(
+                            df["epoch"].iloc[-1],
+                            df["metric_loss"].iloc[-1],
+                            f"metric_loss t={t_dim} r={r_dim} margin={margin} gain={gain}",
+                            fontsize=9,
+                            va="center",
+                            ha="left",
+                        )
         plt.show()
         plt.close()
 

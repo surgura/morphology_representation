@@ -74,10 +74,10 @@ TRAIN_DD_OUT_LOSS = lambda experiment_name, run, t_dim, r_dim, margin, gain: pat
 TRAIN_DD_MARGINS = [0.05, 0.2]
 
 # settings for plot_train_loss.py
-PLTTRAIN_OUT = lambda experiment_name, run, t_dim, r_dim: path.join(
+PLTTRAIN_OUT = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"exps/{experiment_name}/trained_plot/t_dim{t_dim}___r_dim{r_dim}.svg",
+    f"exps/{experiment_name}/trained_plot/t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}.svg",
 )
 
 # settings for generate_evaluation_representation_set.py
@@ -111,6 +111,14 @@ STRESSRTGAE_OUT = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.
     f"exps/{experiment_name}/evaluation/stress/t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}/stress.pickle",
 )
 
+# settings for measure_locality.py
+LOCRTGAE_RNG_SEED = 509785848763
+LOCRTGAE_OUT = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"exps/{experiment_name}/evaluation/locality/t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}/stress.pickle",
+)
+
 # settings for plot_measures.py
 PLTMSR_OUT_STRESS_INDIVIDUAL_RUNS = lambda experiment_name, run: path.join(
     RESULTS_BASE,
@@ -134,10 +142,16 @@ PLTMSR_OUT_COVERAGE_INDIVIDUAL_RUNS = lambda experiment_name, run: path.join(
 #     f"evaluation/coverage.svg",
 # )
 
-PLTMSR_OUT_PAIRS = lambda experiment_name, run, t_dim, r_dim: path.join(
+PLTMSR_OUT_PAIRS = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"exps/{experiment_name}/evaluation/plots/scatter___t_dim{t_dim}___r_dim{r_dim}.png",
+    f"exps/{experiment_name}/evaluation/plots/scatter___t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}.png",
+)
+
+PLTMSR_OUT_LOC_PAIRS = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"exps/{experiment_name}/evaluation/plots/locality_scatter___t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}.png",
 )
 
 # settings for select_representations.py

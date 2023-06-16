@@ -10,6 +10,7 @@ from rtgae.recursive_tree_grammar_auto_encoder import TreeGrammarAutoEncoder
 from robot_rgt import make_body_rgt
 import torch
 from tree import GraphAdjform
+from torch.nn.functional import normalize
 
 
 def do_run(experiment_name: str, run: int, t_dim_i: int, r_dim_i: int) -> None:
@@ -29,7 +30,7 @@ def do_run(experiment_name: str, run: int, t_dim_i: int, r_dim_i: int) -> None:
     for i in range(100):
         torch.manual_seed(i)
         repr1 = torch.rand(r_dim) * 2.0 - 1.0
-        repr2 = repr1 + 0.25 * (torch.rand(r_dim) * 2.0 - 1.0).norm()
+        repr2 = repr1 + 0.25 * normalize(torch.rand(size=(r_dim,)) * 2.0 - 1.0, dim=0)
         tree1 = GraphAdjform(
             *model.decode(repr1, max_size=config.MODEL_MAX_MODULES_INCL_EMPTY)[:2]
         )
