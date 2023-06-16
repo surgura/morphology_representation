@@ -5,12 +5,15 @@ import pickle
 import config
 from pqgrams import Profile
 from pqgrams_util import tree_to_pqgrams
+from apted_util import tree_to_apted
+import apted
 
 
 class TrainSet(Dataset[Tuple[DirectedTreeNodeform, GraphAdjform, Profile]]):
     _tree_node_form: List[DirectedTreeNodeform]
     _graph_adj_form: List[GraphAdjform]
     _pqgrams: List[Profile]
+    _apted: List[apted.Tree]
 
     def __init__(self, run: int, experiment_name: str) -> None:
         with open(
@@ -23,6 +26,7 @@ class TrainSet(Dataset[Tuple[DirectedTreeNodeform, GraphAdjform, Profile]]):
             tree.to_graph_adjform() for tree in self._tree_node_form
         ]
         self._pqgrams = [tree_to_pqgrams(tree) for tree in self._graph_adj_form]
+        self._apted = [tree_to_apted(tree) for tree in self._graph_adj_form]
 
     def __len__(self) -> int:
         return len(self._tree_node_form)
