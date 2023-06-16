@@ -7,7 +7,7 @@ import hashlib
 import logging
 import pathlib
 import pickle
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 
@@ -18,23 +18,49 @@ from rtgae import tree_grammar
 from tree import DirectedTreeNodeform
 import torch
 from apted_util import tree_to_apted, apted_tree_edit_distance
+import joblib
+import apted.helpers
 
 
-def compute_distance_matrix(trees: List[DirectedTreeNodeform]) -> torch.Tensor:
+def compute_distance_matrix_part(
+    asapted: List[apted.helpers.Tree], slice: Tuple[int, int]
+) -> torch.Tensor:
+    distance_matrix_part = torch.zeros((slice[1] - slice[0], len(asapted)))
+
+    for i, tree in enumerate(asapted[slice[0] : slice[1]]):
+        print(i)
+        for j, other in enumerate(asapted):
+            distance_matrix_part[i, j] = apted_tree_edit_distance(
+                asapted[i], asapted[j]
+            )
+    return distance_matrix_part
+
+
+def compute_distance_matrix(
+    trees: List[DirectedTreeNodeform], parallelism: int
+) -> torch.Tensor:
     n = len(trees)
 
     distance_matrix = torch.zeros((n, n))
 
     asapted = [tree_to_apted(tree.to_graph_adjform()) for tree in trees]
 
-    for i in range(n):
-        print(i)
-        for j in range(i, n):
-            dist = apted_tree_edit_distance(asapted[i], asapted[j])
-            distance_matrix[i, j] = dist
-            distance_matrix[j, i] = dist
+    slices = [
+        (
+            job_i * len(asapted) // parallelism,
+            (job_i + 1) * len(asapted) // parallelism,
+        )
+        for job_i in range(parallelism)
+    ]
+    slices[-1] = (slices[-1][0], len(asapted))
 
-    return distance_matrix
+    results: List[torch.Tensor] = joblib.Parallel(n_jobs=parallelism)(
+        [
+            joblib.delayed(compute_distance_matrix_part)(asapted, slice)
+            for slice in slices
+        ]
+    )
+    return torch.cat(results)
 
 
 def do_run(
@@ -60,7 +86,7 @@ def do_run(
         ],
         [],
     )
-    distance_matrix = compute_distance_matrix(archive)
+    distance_matrix = compute_distance_matrix(archive, parallelism)
     out_file = config.GENTRAIN_OUT(run=run, experiment_name=experiment_name)
     pathlib.Path(out_file).parent.mkdir(parents=True, exist_ok=True)
     with open(out_file, "wb") as f:
