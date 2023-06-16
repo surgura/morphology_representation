@@ -83,12 +83,12 @@ def generate_for_benchmark(run: int) -> None:
 
 
 def generate_for_rtgae(
-    run: int, experiment_name: str, t_dim: int, r_dim: int, parallelism: int
+    run: int, experiment_name: str, r_dim: int, parallelism: int
 ) -> None:
     rng_seed = (
         int(
             hashlib.sha256(
-                f"generate_evaluation_representation_set_seed{config.GENEVALREPR_SEED}_rtgae_run{run}_t_dim{t_dim}_r_dim{r_dim}".encode()
+                f"generate_evaluation_representation_set_seed{config.GENEVALREPR_SEED}_rtgae_run{run}_r_dim{r_dim}".encode()
             ).hexdigest(),
             16,
         )
@@ -109,7 +109,7 @@ def generate_for_rtgae(
     )
 
     out_file = config.GENEVALREPR_OUT_RTGAE(
-        run=run, experiment_name=experiment_name, t_dim=t_dim, r_dim=r_dim
+        run=run, experiment_name=experiment_name, r_dim=r_dim
     )
     pathlib.Path(out_file).parent.mkdir(parents=True, exist_ok=True)
     with open(out_file, "wb") as f:
@@ -131,20 +131,14 @@ def main() -> None:
     args = parser.parse_args()
 
     for run in range(config.RUNS):
-        # logging.info(f"Generating for benchmark run {run}")
-        # generate_for_benchmark(run=run, parallelism=args.parallelism) TODO
-        for t_dim in config.MODEL_T_DIMS:
-            for r_dim in config.MODEL_R_DIMS:
-                logging.info(
-                    f"Generating for rtgae run {run} t_dim {t_dim} r_dim {r_dim}"
-                )
-                generate_for_rtgae(
-                    run=run,
-                    experiment_name=args.experiment_name,
-                    t_dim=t_dim,
-                    r_dim=r_dim,
-                    parallelism=args.parallelism,
-                )
+        for r_dim in config.MODEL_R_DIMS:
+            logging.info(f"Generating for rtgae run {run} r_dim {r_dim}")
+            generate_for_rtgae(
+                run=run,
+                experiment_name=args.experiment_name,
+                r_dim=r_dim,
+                parallelism=args.parallelism,
+            )
 
 
 if __name__ == "__main__":

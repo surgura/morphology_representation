@@ -41,10 +41,18 @@ def smallest_distance_nonzero_multiple(
 
 
 def do_run(
-    experiment_name: str, run: int, t_dim_i: int, r_dim_i: int, parallelism: int
+    experiment_name: str,
+    run: int,
+    t_dim_i: int,
+    r_dim_i: int,
+    parallelism: int,
+    margin_i: int,
+    gain_i: int,
 ) -> None:
     t_dim = config.MODEL_T_DIMS[t_dim_i]
     r_dim = config.MODEL_R_DIMS[r_dim_i]
+    margin = config.TRAIN_DD_MARGINS[margin_i]
+    gain = config.TRAIN_DD_TRIPLET_FACTORS[gain_i]
 
     logging.info(f"Measuring coverage for RTGAE {run=} {t_dim=} {r_dim=}")
 
@@ -53,7 +61,12 @@ def do_run(
     model.load_state_dict(
         torch.load(
             config.TRAIN_DD_OUT(
-                experiment_name=experiment_name, run=run, t_dim=t_dim, r_dim=r_dim
+                experiment_name=experiment_name,
+                run=run,
+                t_dim=t_dim,
+                r_dim=r_dim,
+                margin=margin,
+                gain=gain,
             )
         )
     )
@@ -61,7 +74,7 @@ def do_run(
     reprset: EvaluationRepresentationSet[torch.Tensor]
     with open(
         config.GENEVALREPR_OUT_RTGAE(
-            run=run, experiment_name=experiment_name, t_dim=t_dim, r_dim=r_dim
+            run=run, experiment_name=experiment_name, r_dim=r_dim
         ),
         "rb",
     ) as f:
@@ -102,7 +115,12 @@ def do_run(
     coverage = sum([r**2 for r in results_combined], 0.0)
 
     out_file = config.CVGRTGAE_OUT(
-        experiment_name=experiment_name, run=run, t_dim=t_dim, r_dim=r_dim
+        experiment_name=experiment_name,
+        run=run,
+        t_dim=t_dim,
+        r_dim=r_dim,
+        margin=margin,
+        gain=gain,
     )
     pathlib.Path(out_file).parent.mkdir(parents=True, exist_ok=True)
     with open(out_file, "wb") as f:
@@ -134,18 +152,32 @@ def main() -> None:
         type=indices_range.indices_type(range(len(config.MODEL_T_DIMS))),
         required=True,
     )
+    parser.add_argument(
+        "--margins",
+        type=indices_range.indices_type(range(len(config.TRAIN_DD_MARGINS))),
+        required=True,
+    )
+    parser.add_argument(
+        "--gains",
+        type=indices_range.indices_type(range(len(config.TRAIN_DD_TRIPLET_FACTORS))),
+        required=True,
+    )
     args = parser.parse_args()
 
     for run in args.runs:
         for t_dim_i in args.t_dims:
             for r_dim_i in args.r_dims:
-                do_run(
-                    experiment_name=args.experiment_name,
-                    run=run,
-                    t_dim_i=t_dim_i,
-                    r_dim_i=r_dim_i,
-                    parallelism=args.parallelism,
-                )
+                for margin_i in args.margins:
+                    for gain_i in args.gains:
+                        do_run(
+                            experiment_name=args.experiment_name,
+                            run=run,
+                            t_dim_i=t_dim_i,
+                            r_dim_i=r_dim_i,
+                            parallelism=args.parallelism,
+                            margin_i=margin_i,
+                            gain_i=gain_i,
+                        )
 
 
 if __name__ == "__main__":

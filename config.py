@@ -84,10 +84,10 @@ PLTTRAIN_OUT = lambda experiment_name, run, t_dim, r_dim: path.join(
 GENEVALREPR_SEED = 34592349873289
 GENEVALREPR_NUM_REPRESENTATIONS = 1000
 GENEVALREPR_NUM_BINS = 20
-GENEVALREPR_OUT_RTGAE = lambda run, experiment_name, t_dim, r_dim: path.join(
+GENEVALREPR_OUT_RTGAE = lambda run, experiment_name, r_dim: path.join(
     RESULTS_BASE,
     f"run{run}/exps/{experiment_name}",
-    f"evaluation/representation/rtgae/t_dim{t_dim}___r_dim{r_dim}/set.pickle",
+    f"evaluation/representation/rtgae/r_dim{r_dim}/set.pickle",
 )
 
 # settings for generate_evaluation_solution_set.py
@@ -98,17 +98,17 @@ GENEVALSOL_OUT = lambda run, experiment_name: path.join(
 )
 
 # settings for measure_coverage_rtgae.py
-CVGRTGAE_OUT = lambda experiment_name, run, t_dim, r_dim: path.join(
+CVGRTGAE_OUT = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"exps/{experiment_name}/evaluation/coverage/t_dim{t_dim}___r_dim{r_dim}/coverage.pickle",
+    f"exps/{experiment_name}/evaluation/coverage/t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}/coverage.pickle",
 )
 
 # settings for measure_stress_rtgae.py
-STRESSRTGAE_OUT = lambda experiment_name, run, t_dim, r_dim: path.join(
+STRESSRTGAE_OUT = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"exps/{experiment_name}/evaluation/stress/t_dim{t_dim}___r_dim{r_dim}/stress.pickle",
+    f"exps/{experiment_name}/evaluation/stress/t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}/stress.pickle",
 )
 
 # settings for plot_measures.py
