@@ -13,19 +13,18 @@ import indices_range
 from render2d import render_modular_robot_radial
 from robot_rgt import tree_to_body
 from tree import DirectedTreeNodeform
+from train_set import TrainSet
 
 
 def do_run(run: int, experiment_name: str) -> None:
-    trainset: List[DirectedTreeNodeform]
-    with open(config.GENTRAIN_OUT(run=run, experiment_name=experiment_name), "rb") as f:
-        trainset = pickle.load(f)
+    trainset = TrainSet(run=run, experiment_name=experiment_name)
 
-    for i, tree in enumerate(trainset):
+    for i, tree in enumerate(trainset._graph_adj_form):
         out_file = config.RENDERTRAIN_OUT(
             run=run, experiment_name=experiment_name, item_i=i
         )
         pathlib.Path(out_file).parent.mkdir(parents=True, exist_ok=True)
-        render_modular_robot_radial(tree_to_body(tree.to_graph_adjform()), out_file)
+        render_modular_robot_radial(tree_to_body(tree), out_file)
 
 
 def main() -> None:
