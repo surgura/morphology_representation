@@ -8,11 +8,11 @@ import torch
 from evaluation_representation_set import EvaluationRepresentationSet
 import pickle
 from tree import GraphAdjform
-from pqgrams_util import tree_to_pqgrams
 import pathlib
 import math
 import hashlib
 from torch.nn.functional import normalize
+from apted_util import tree_to_apted, apted_tree_edit_distance
 
 
 def do_run(
@@ -70,7 +70,7 @@ def do_run(
         reprset = pickle.load(f)
 
     repr_mapped_as_pqgrams = {
-        repr: tree_to_pqgrams(
+        repr: tree_to_apted(
             GraphAdjform(
                 *model.decode(repr, max_size=config.MODEL_MAX_MODULES_INCL_EMPTY)[:2]
             )
@@ -87,14 +87,15 @@ def do_run(
             )
 
             repr_dist = torch.norm(repr - neighbor).item()
-            sol_dist = repr_mapped_as_pqgrams[repr].edit_distance(
-                tree_to_pqgrams(
+            sol_dist = apted_tree_edit_distance(
+                repr_mapped_as_pqgrams[repr],
+                tree_to_apted(
                     GraphAdjform(
                         *model.decode(
                             neighbor, max_size=config.MODEL_MAX_MODULES_INCL_EMPTY
                         )[:2]
                     )
-                )
+                ),
             )
 
             dists_in_reprspace.append(repr_dist)
