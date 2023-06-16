@@ -8,7 +8,7 @@ import torch
 from evaluation_representation_set import EvaluationRepresentationSet
 import pickle
 from tree import GraphAdjform
-from pqgrams_util import tree_to_pqgrams
+from apted_util import tree_to_apted, apted_tree_edit_distance
 from tree import DirectedTreeNodeform
 from typing import List, Tuple
 import pqgrams
@@ -23,7 +23,7 @@ def smallest_distance_nonzero(
     return min(
         [
             x
-            for x in [tree.edit_distance(other) for other in compare_to]
+            for x in [apted_tree_edit_distance(tree, other) for other in compare_to]
             if not x is np.isclose(x, 0.0)
         ]
     )
@@ -36,7 +36,7 @@ def smallest_distance_nonzero_multiple(
 ) -> List[float]:
     return [
         smallest_distance_nonzero(tree, compare_to)
-        for tree in trees[slice[0] : slice[1]]
+        for i, tree in trees[slice[0] : slice[1]]
     ]
 
 
@@ -88,14 +88,14 @@ def do_run(
         )
         for repr in reprset.representations
     ]
-    mapped_as_pqgrams = [tree_to_pqgrams(mapped) for mapped in mappeds]
+    mapped_as_pqgrams = [tree_to_apted(mapped) for mapped in mappeds]
 
     solset: List[DirectedTreeNodeform]
     with open(
         config.GENEVALSOL_OUT(run=run, experiment_name=experiment_name), "rb"
     ) as f:
         solset = pickle.load(f)
-    sol_as_pqgrams = [tree_to_pqgrams(sol.to_graph_adjform()) for sol in solset]
+    sol_as_pqgrams = [tree_to_apted(sol.to_graph_adjform()) for sol in solset]
 
     slices = [
         (
