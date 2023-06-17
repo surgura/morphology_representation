@@ -11,14 +11,14 @@ from tree import GraphAdjform
 from apted_util import tree_to_apted, apted_tree_edit_distance
 from tree import DirectedTreeNodeform
 from typing import List, Tuple
-import pqgrams
 import numpy as np
 import joblib
 import pathlib
+import apted.helpers
 
 
 def smallest_distance_nonzero(
-    tree: pqgrams.Profile, compare_to: List[pqgrams.Profile]
+    tree: apted.helpers.Tree, compare_to: List[apted.helpers.Tree]
 ) -> float:
     return min(
         [
@@ -30,8 +30,8 @@ def smallest_distance_nonzero(
 
 
 def smallest_distance_nonzero_multiple(
-    trees: List[pqgrams.Profile],
-    compare_to: List[pqgrams.Profile],
+    trees: List[apted.helpers.Tree],
+    compare_to: List[apted.helpers.Tree],
     slice: Tuple[int, int],
 ) -> List[float]:
     return [

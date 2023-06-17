@@ -17,38 +17,7 @@ from train_set import TrainSet
 from torch.utils.data import DataLoader
 from pqgrams import Profile
 from tree import DirectedTreeNodeform, GraphAdjform
-from pqgrams_util import tree_to_pqgrams
 import io
-
-
-def compute_distance_matrix(graphs: List[GraphAdjform]):
-    aspqgrams = [tree_to_pqgrams(tree) for tree in graphs]
-
-    n = len(graphs)
-
-    distance_matrix = torch.zeros((n, n))
-
-    for i in range(n):
-        for j in range(i, n):
-            dist = aspqgrams[i].edit_distance(aspqgrams[j])
-            distance_matrix[i, j] = dist
-            distance_matrix[j, i] = dist
-
-    return distance_matrix
-
-
-def sub_distance_matrix(distances: torch.Tensor, set_indices: List[int]):
-    n = len(set_indices)
-
-    distance_matrix = torch.zeros((n, n))
-
-    for i in range(n):
-        for j in range(i, n):
-            dist = aspqgrams[i].edit_distance(aspqgrams[j])
-            distance_matrix[i, j] = dist
-            distance_matrix[j, i] = dist
-
-    return distance_matrix
 
 
 def train_epoch(
