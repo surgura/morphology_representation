@@ -35,8 +35,11 @@ def smallest_distance_nonzero_multiple(
     slice: Tuple[int, int],
 ) -> List[float]:
     return [
-        smallest_distance_nonzero(tree, compare_to)
-        for i, tree in trees[slice[0] : slice[1]]
+        (
+            print(i),
+            smallest_distance_nonzero(tree, compare_to),
+        )[1]
+        for i, tree in enumerate(trees[slice[0] : slice[1]])
     ]
 
 
