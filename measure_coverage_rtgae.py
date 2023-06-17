@@ -36,7 +36,7 @@ def smallest_distance_nonzero_multiple(
 ) -> List[float]:
     return [
         (
-            print(f"i/{slice[1]-slice[0]}"),
+            print(f"{i}/{slice[1]-slice[0]}"),
             smallest_distance_nonzero(tree, compare_to),
         )[1]
         for i, tree in enumerate(trees[slice[0] : slice[1]])
