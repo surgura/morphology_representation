@@ -64,7 +64,7 @@ def train_epoch(
                 )
                 continue
 
-            positive_window = 25
+            positive_window = 1
             positive_argsort_i = torch.randint(
                 low=nonzero_argsort_i,
                 high=min(nonzero_argsort_i + positive_window, len(graphs) - 2),
@@ -85,7 +85,7 @@ def train_epoch(
                 logging.info("Could not find one more than the non-zero.")
                 continue
 
-            negative_window = 15
+            negative_window = 10
             negative_argsort_i = torch.randint(
                 low=onemore_argsort_i,
                 high=min(onemore_argsort_i + negative_window, len(graphs) - 1),

@@ -27,11 +27,11 @@ def compute_distance_matrix_part(
 ) -> torch.Tensor:
     distance_matrix_part = torch.zeros((slice[1] - slice[0], len(asapted)))
 
-    for i, tree in enumerate(asapted[slice[0] : slice[1]]):
+    for i, slice_i in enumerate(range(slice[0], slice[1])):
         print(i)
         for j, other in enumerate(asapted):
             distance_matrix_part[i, j] = apted_tree_edit_distance(
-                asapted[i], asapted[j]
+                asapted[slice_i], asapted[j]
             )
     return distance_matrix_part
 
@@ -39,10 +39,6 @@ def compute_distance_matrix_part(
 def compute_distance_matrix(
     trees: List[DirectedTreeNodeform], parallelism: int
 ) -> torch.Tensor:
-    n = len(trees)
-
-    distance_matrix = torch.zeros((n, n))
-
     asapted = [tree_to_apted(tree.to_graph_adjform()) for tree in trees]
 
     slices = [
@@ -60,6 +56,7 @@ def compute_distance_matrix(
             for slice in slices
         ]
     )
+
     return torch.cat(results)
 
 
