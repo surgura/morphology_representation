@@ -113,6 +113,7 @@ def train_epoch(
         else:
             metric_loss = sum(metric_losses[1:], metric_losses[0])
             loss = recon_loss + gain * metric_loss
+        loss = metric_loss
 
         optimizer.zero_grad()
         loss.backward()
