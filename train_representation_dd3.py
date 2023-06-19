@@ -108,6 +108,7 @@ def train_epoch(
             )
 
         if len(metric_losses) == 0:
+            logging.info("Metric loss is zero, which should occur only very rarely.")
             loss = recon_loss
         else:
             metric_loss = sum(metric_losses[1:], metric_losses[0])
