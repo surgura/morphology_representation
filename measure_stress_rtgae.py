@@ -8,7 +8,7 @@ import torch
 from evaluation_representation_set import EvaluationRepresentationSet
 import pickle
 from tree import GraphAdjform
-from pqgrams_util import tree_to_pqgrams
+from apted_util import tree_to_apted, apted_tree_edit_distance
 import pathlib
 import math
 
@@ -58,8 +58,8 @@ def do_run(
     # normalized stress or kruskal's stress-1
     # S = sqrt[ ( sum over i,j (d_ij(X) - d_ij(Y))^2 ) / ( sum over i,j (d_ij(X))^2 ) ]
 
-    repr_mapped_as_pqgrams = {
-        repr: tree_to_pqgrams(
+    repr_mapped_as_apted = {
+        repr: tree_to_apted(
             GraphAdjform(
                 *model.decode(repr, max_size=config.MODEL_MAX_MODULES_INCL_EMPTY)[:2]
             )
@@ -68,7 +68,7 @@ def do_run(
     }
 
     dists_in_solspace = [
-        repr_mapped_as_pqgrams[a].edit_distance(repr_mapped_as_pqgrams[b])
+        apted_tree_edit_distance(repr_mapped_as_apted[a], repr_mapped_as_apted[b])
         for (a, b) in reprset.pairs
     ]
 
