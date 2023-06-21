@@ -58,23 +58,37 @@ def train_epoch(
                 ):
                     break
                 nonzero_argsort_i += 1
-            if nonzero_argsort_i == len(graphs):
+            if nonzero_argsort_i >= len(graphs):
                 logging.info(
                     "Could not find non-zero distanced positive item for anchor."
                 )
                 continue
 
-            positive_window = 5
+            positive_window = 1
             positive_argsort_i = torch.randint(
                 low=nonzero_argsort_i,
                 high=min(nonzero_argsort_i + positive_window, len(graphs) - 2),
                 size=(1,),
             ).item()
 
-            negative_window = 5
+            onemore_argsort_i = positive_argsort_i + 1
+            while onemore_argsort_i < len(graphs):
+                if (
+                    distance_matrix[anchor_i, sorted_ind[anchor_i, onemore_argsort_i]]
+                    != distance_matrix[
+                        anchor_i, sorted_ind[anchor_i, positive_argsort_i]
+                    ]
+                ):
+                    break
+                onemore_argsort_i += 1
+            if onemore_argsort_i >= len(graphs):
+                logging.info("Could not find one more than the non-zero.")
+                continue
+
+            negative_window = 10
             negative_argsort_i = torch.randint(
-                low=positive_argsort_i + 1,
-                high=min(positive_argsort_i + negative_window, len(graphs) - 1),
+                low=onemore_argsort_i,
+                high=min(onemore_argsort_i + negative_window, len(graphs) - 1),
                 size=(1,),
             ).item()
 
@@ -94,10 +108,12 @@ def train_epoch(
             )
 
         if len(metric_losses) == 0:
+            logging.info("Metric loss is zero, which should occur only very rarely.")
             loss = recon_loss
         else:
             metric_loss = sum(metric_losses[1:], metric_losses[0])
             loss = recon_loss + gain * metric_loss
+        loss = recon_loss
 
         optimizer.zero_grad()
         loss.backward()
