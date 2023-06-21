@@ -256,3 +256,10 @@ PLTXOVER_OUT = lambda experiment_name, run, t_dim, r_dim, tag: path.join(
     f"run{run}",
     f"exps/{experiment_name}/evaluation/xover/t_dim{t_dim}___r_dim{r_dim}/xo_{tag}.png",
 )
+
+# settings for sample_mutation.py
+SMPLMUT_OUT = lambda experiment_name, run, t_dim, r_dim, margin, gain, tag: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"exps/{experiment_name}/evaluation/samples/t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}/sample_{tag}.png",
+)
