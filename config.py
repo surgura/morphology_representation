@@ -162,7 +162,7 @@ SREP_OUT = lambda run: path.join(
 )
 
 # settings for opt_robot_displacement_*.py
-ROBOPT_RUNS = 5
+ROBOPT_RUNS = 10
 
 ROBOPT_NUM_INITIAL_MUTATIONS = 500
 
