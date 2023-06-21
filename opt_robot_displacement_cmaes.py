@@ -94,7 +94,7 @@ def do_run(
         gain=gain,
     )
 
-    evaluator = Evaluator(False, parallelism)
+    evaluator = Evaluator(True, parallelism)
 
     dbengine = open_database_sqlite(
         config.OPTCMAES_OUT(
