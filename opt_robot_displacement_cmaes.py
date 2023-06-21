@@ -38,7 +38,7 @@ def load_body_model(
     model = TreeGrammarAutoEncoder(grammar, dim=t_dim, dim_vae=r_dim)
     model.load_state_dict(
         torch.load(
-            config.TRAIN_OUT(
+            config.TRAIN_DD_OUT(
                 experiment_name=experiment_name,
                 run=run,
                 t_dim=t_dim,
