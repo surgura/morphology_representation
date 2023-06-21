@@ -26,17 +26,19 @@ RENDERTRAIN_OUT = lambda run, experiment_name, item_i: path.join(
 )
 
 # settings for representation model
-MODEL_T_DIMS = [
-    64,
-    128,
-    256,
-]  # tree encoding dimensionality. 'dim' in rtgae.
-MODEL_R_DIMS = [
-    8,
-    16,
-    24,
-    48,
-]  # 8, 24  # representation dimensionality. 'dim_vae' in rtgae.
+# MODEL_T_DIMS = [
+#     64,
+#     128,
+#     256,
+# ]  # tree encoding dimensionality. 'dim' in rtgae.
+# MODEL_R_DIMS = [
+#     8,
+#     16,
+#     24,
+#     48,
+# ]  # representation dimensionality. 'dim_vae' in rtgae.
+MODEL_T_DIMS = [128]  # tree encoding dimensionality. 'dim' in rtgae.
+MODEL_R_DIMS = [24]  # representation dimensionality. 'dim_vae' in rtgae.
 MODEL_MAX_MODULES = 10
 MODEL_REPR_DOMAIN = [-1.0, 1.0]
 MODEL_MAX_MODULES_INCL_EMPTY = (
