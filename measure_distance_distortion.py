@@ -8,11 +8,8 @@ import torch
 from evaluation_representation_set import EvaluationRepresentationSet
 import pickle
 from tree import GraphAdjform
-import pathlib
-import math
-import hashlib
-from torch.nn.functional import normalize
 from apted_util import tree_to_apted, apted_tree_edit_distance
+import pathlib
 
 
 def do_run(
@@ -29,20 +26,8 @@ def do_run(
     margin = config.TRAIN_DD_MARGINS[margin_i]
     gain = config.TRAIN_DD_TRIPLET_FACTORS[gain_i]
 
-    rng_seed = (
-        int(
-            hashlib.sha256(
-                f"measure_locality_seed{config.LOCRTGAE_RNG_SEED}_rtgae_run{run}_r_dim{r_dim}_margin{margin}_gain{gain}".encode()
-            ).hexdigest(),
-            16,
-        )
-        % 2**64
-    )
-    rng = torch.Generator()
-    rng.manual_seed(rng_seed)
-
     logging.info(
-        f"Measuring locality for RTGAE {run=} {t_dim=} {r_dim=} {margin=} {gain=}"
+        f"Measuring stress for RTGAE {run=} {t_dim=} {r_dim=} {margin=} {gain=}"
     )
 
     grammar = make_body_rgt()
@@ -69,7 +54,7 @@ def do_run(
     ) as f:
         reprset = pickle.load(f)
 
-    repr_mapped_as_pqgrams = {
+    repr_mapped_as_apted = {
         repr: tree_to_apted(
             GraphAdjform(
                 *model.decode(repr, max_size=config.MODEL_MAX_MODULES_INCL_EMPTY)[:2]
@@ -78,32 +63,14 @@ def do_run(
         for repr in reprset.representations
     }
 
-    dists_in_solspace = []
-    dists_in_reprspace = []
-    for repr in reprset.representations:
-        for _ in range(10):
-            neighbor = repr + config.LOCRTGAE_DIST * torch.rand(
-                size=(1,), generator=rng
-            ) * normalize(torch.rand(size=(r_dim,), generator=rng) * 2.0 - 1.0, dim=0)
+    dists_in_solspace = [
+        apted_tree_edit_distance(repr_mapped_as_apted[a], repr_mapped_as_apted[b])
+        for (a, b) in reprset.pairs
+    ]
 
-            repr_dist = torch.norm(repr - neighbor).item()
-            sol_dist = apted_tree_edit_distance(
-                repr_mapped_as_pqgrams[repr],
-                tree_to_apted(
-                    GraphAdjform(
-                        *model.decode(
-                            neighbor, max_size=config.MODEL_MAX_MODULES_INCL_EMPTY
-                        )[:2]
-                    )
-                ),
-            )
+    dist_pairs = list(zip(reprset.distances, dists_in_solspace))
 
-            dists_in_reprspace.append(repr_dist)
-            dists_in_solspace.append(sol_dist)
-
-    dist_pairs = list(zip(dists_in_reprspace, dists_in_solspace))
-
-    out_file = config.LOCRTGAE_OUT(
+    out_file = config.STRESSRTGAE_OUT(
         experiment_name=experiment_name,
         run=run,
         t_dim=t_dim,

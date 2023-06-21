@@ -110,6 +110,7 @@ STRESSRTGAE_OUT = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.
 
 # settings for measure_locality.py
 LOCRTGAE_RNG_SEED = 509785848763
+LOCRTGAE_DIST = 0.5
 LOCRTGAE_OUT = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.join(
     RESULTS_BASE,
     f"run{run}",
