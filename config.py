@@ -153,13 +153,28 @@ PLTMSR_OUT_COVERAGE_INDIVIDUAL_RUNS = lambda experiment_name, run: path.join(
 #     f"evaluation/coverage.svg",
 # )
 
-PLTMSR_OUT_PAIRS = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.join(
+PLTMSR_OUT_LOC = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.join(
     RESULTS_BASE,
     f"run{run}",
     f"exps/{experiment_name}/evaluation/plots/scatter___t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}.png",
 )
 
 PLTMSR_OUT_LOC_PAIRS = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"exps/{experiment_name}/evaluation/plots/locality_scatter___t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}.png",
+)
+
+# settings for plot_distance_preservation_locality.py
+PLTPREVLOC_Y_LIM = [-1, 35.0]
+
+PLTPREVLOC_OUT_DPREV = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"exps/{experiment_name}/evaluation/plots/distance_preservation_scatter___t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}.png",
+)
+
+PLTPREVLOC_OUT_LOC = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.join(
     RESULTS_BASE,
     f"run{run}",
     f"exps/{experiment_name}/evaluation/plots/locality_scatter___t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}.png",
