@@ -113,7 +113,7 @@ def do_run(
     )
     pathlib.Path(out_file).parent.mkdir(parents=True, exist_ok=True)
     with open(out_file, "wb") as f:
-        pickle.dump({"dist_pairs": dist_pairs}, f)
+        pickle.dump(dist_pairs, f)
 
 
 def main() -> None:

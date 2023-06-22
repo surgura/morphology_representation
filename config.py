@@ -26,19 +26,19 @@ RENDERTRAIN_OUT = lambda run, experiment_name, item_i: path.join(
 )
 
 # settings for representation model
-MODEL_T_DIMS = [
-    64,
-    128,
-    256,
-]  # tree encoding dimensionality. 'dim' in rtgae.
-MODEL_R_DIMS = [
-    8,
-    16,
-    24,
-    48,
-]  # representation dimensionality. 'dim_vae' in rtgae.
-# MODEL_T_DIMS = [128]  # tree encoding dimensionality. 'dim' in rtgae.
-# MODEL_R_DIMS = [24]  # representation dimensionality. 'dim_vae' in rtgae.
+# MODEL_T_DIMS = [
+#     64,
+#     128,
+#     256,
+# ]  # tree encoding dimensionality. 'dim' in rtgae.
+# MODEL_R_DIMS = [
+#     8,
+#     16,
+#     24,
+#     48,
+# ]  # representation dimensionality. 'dim_vae' in rtgae.
+MODEL_T_DIMS = [128]  # tree encoding dimensionality. 'dim' in rtgae.
+MODEL_R_DIMS = [24]  # representation dimensionality. 'dim_vae' in rtgae.
 MODEL_MAX_MODULES = 10
 MODEL_REPR_DOMAIN = [-1.0, 1.0]
 MODEL_MAX_MODULES_INCL_EMPTY = (
@@ -59,7 +59,8 @@ TRAIN_DD_OUT = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.joi
 )
 TRAIN_EPOCHS = 200
 TRAIN_BATCH_SIZE = 200
-TRAIN_DD_TRIPLET_FACTORS = [1.0, 5.0, 10.0]  # [1.0]
+# TRAIN_DD_TRIPLET_FACTORS = [1.0, 5.0, 10.0]
+TRAIN_DD_TRIPLET_FACTORS = [1.0]
 TRAIN_OUT_LOSS = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.join(
     RESULTS_BASE,
     f"run{run}",
@@ -70,7 +71,8 @@ TRAIN_DD_OUT_LOSS = lambda experiment_name, run, t_dim, r_dim, margin, gain: pat
     f"run{run}",
     f"exps/{experiment_name}/trained_representation_dd/t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}/loss.pickle",
 )
-TRAIN_DD_MARGINS = [0.05, 0.2]  # [0.2]
+# TRAIN_DD_MARGINS = [0.05, 0.2]
+TRAIN_DD_MARGINS = [0.2]
 
 # settings for plot_train_loss.py
 PLTTRAIN_OUT = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.join(
@@ -110,13 +112,22 @@ STRESSRTGAE_OUT = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.
     f"exps/{experiment_name}/evaluation/stress/t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}/stress.pickle",
 )
 
+# settings for measure_distance_preservation.py
+DPREVTGAE_RNG_SEED = 210394851010
+DPREVRTGAE_DIST = 5.0
+DPREVRTGAE_OUT = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"exps/{experiment_name}/evaluation/distance_preservation/t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}/pairs.pickle",
+)
+
 # settings for measure_locality.py
 LOCRTGAE_RNG_SEED = 509785848763
 LOCRTGAE_DIST = 0.5
 LOCRTGAE_OUT = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"exps/{experiment_name}/evaluation/locality/t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}/stress.pickle",
+    f"exps/{experiment_name}/evaluation/locality/t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}/pairs.pickle",
 )
 
 # settings for plot_measures.py
