@@ -32,7 +32,7 @@ def do_run(
     rng_seed = (
         int(
             hashlib.sha256(
-                f"measure_locality_seed{config.DPREVRTGAE_RNG_SEED}_rtgae_run{run}_r_dim{r_dim}_margin{margin}_gain{gain}".encode()
+                f"measure_distance_preservation_seed{config.DPREVRTGAE_RNG_SEED}_rtgae_run{run}_r_dim{r_dim}_margin{margin}_gain{gain}".encode()
             ).hexdigest(),
             16,
         )
