@@ -113,7 +113,7 @@ STRESSRTGAE_OUT = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.
 )
 
 # settings for measure_distance_preservation.py
-DPREVTGAE_RNG_SEED = 210394851010
+DPREVRTGAE_RNG_SEED = 210394851010
 DPREVRTGAE_DIST = 5.0
 DPREVRTGAE_OUT = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.join(
     RESULTS_BASE,
