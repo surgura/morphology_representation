@@ -62,8 +62,8 @@ def main() -> None:
                                     margin=margin,
                                     gain=gain,
                                 ),
-                                "representation_distance",
-                                "solution_distance",
+                                "Representation distance",
+                                "Solution distance",
                             )
 
                         with open(
@@ -88,8 +88,8 @@ def main() -> None:
                                     margin=margin,
                                     gain=gain,
                                 ),
-                                "representation_distance",
-                                "solution_distance",
+                                "Representation distance",
+                                "Solution distance",
                             )
 
 
