@@ -190,7 +190,7 @@ SREP_OUT = lambda run: path.join(
 # settings for opt_robot_displacement_*.py
 ROBOPT_RUNS = 10
 
-ROBOPT_NUM_INITIAL_MUTATIONS = 500
+ROBOPT_NUM_INITIAL_MUTATIONS = 1
 
 ROBOPT_POPULATION_SIZE = 100
 ROBOPT_OFFSPRING_SIZE = 50
@@ -245,10 +245,10 @@ PLOPT_OUT_INDIVIDUAL_OPTRUNS_RTGAE = lambda experiment_name, run, optrun, t_dim,
     f"run{run}",
     f"exps/{experiment_name}/opt_fitness_plot/rtgae_t_dim{t_dim}___r_dim{r_dim}___optrun{optrun}.svg",
 )
-PLOPT_OUT_INDIVIDUAL_OPTRUNS_CMAES = lambda experiment_name, run, optrun, t_dim, r_dim: path.join(
+PLOPT_OUT_INDIVIDUAL_OPTRUNS_CMAES = lambda experiment_name, run, optrun, t_dim, r_dim, margin, gain: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"exps/{experiment_name}/opt_fitness_plot/cmaes_t_dim{t_dim}___r_dim{r_dim}___optrun{optrun}.svg",
+    f"exps/{experiment_name}/opt_fitness_plot/cmaes_t_dim{t_dim}___r_dim{r_dim}___optrun{optrun}___margin{margin}___gain{gain}.svg",
 )
 PLOPT_OUT_MEAN_OPTRUNS_BENCH = lambda experiment_name, run: path.join(
     RESULTS_BASE, f"run{run}", f"exps/{experiment_name}/opt_fitness_plot/bench_mean.svg"
