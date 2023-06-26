@@ -190,8 +190,6 @@ SREP_OUT = lambda run: path.join(
 # settings for opt_robot_displacement_*.py
 ROBOPT_RUNS = 10
 
-ROBOPT_NUM_INITIAL_MUTATIONS = 10
-
 ROBOPT_POPULATION_SIZE = 100
 ROBOPT_OFFSPRING_SIZE = 50
 ROBOPT_NUM_GENERATIONS = 20
@@ -250,24 +248,39 @@ PLOPT_OUT_INDIVIDUAL_OPTRUNS_CMAES = lambda experiment_name, run, optrun, t_dim,
     f"run{run}",
     f"exps/{experiment_name}/opt_fitness_plot/cmaes_t_dim{t_dim}___r_dim{r_dim}___optrun{optrun}___margin{margin}___gain{gain}.svg",
 )
-PLOPT_OUT_MEAN_OPTRUNS_BENCH = lambda experiment_name, run: path.join(
-    RESULTS_BASE, f"run{run}", f"exps/{experiment_name}/opt_fitness_plot/bench_mean.svg"
+PLOPT_OUT_FITNESS_OPTRUNS_BENCH = lambda experiment_name, run: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"exps/{experiment_name}/opt_plots/cppn_fitness.svg",
+)
+PLOPT_OUT_LEARNINGDELTA_OPTRUNS_BENCH = lambda experiment_name, run: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"exps/{experiment_name}/opt_plots/cppn_learningdelta.svg",
 )
 PLOPT_OUT_MEAN_OPTRUNS_RTGAE = lambda experiment_name, run, t_dim, r_dim: path.join(
     RESULTS_BASE,
     f"run{run}",
     f"exps/{experiment_name}/opt_fitness_plot/rtgae_t_dim{t_dim}___r_dim{r_dim}___mean.svg",
 )
-PLOPT_OUT_MEAN_OPTRUNS_CMAES = lambda experiment_name, run, t_dim, r_dim: path.join(
+PLOPT_OUT_FITNESS_OPTRUNS_CMAES = lambda experiment_name, run, t_dim, r_dim: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"exps/{experiment_name}/opt_fitness_plot/cmaes_t_dim{t_dim}___r_dim{r_dim}___mean.svg",
+    f"exps/{experiment_name}/opt_plots/cmaes_fitness_t_dim{t_dim}___r_dim{r_dim}___mean.svg",
+)
+PLOPT_OUT_LEARNINGDELTA_OPTRUNS_CMAES = lambda experiment_name, run, t_dim, r_dim: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"exps/{experiment_name}/opt_plots/cmaes_learningdelta_t_dim{t_dim}___r_dim{r_dim}___mean.svg",
 )
 PLOPT_OUT_ALL = lambda experiment_name, run: path.join(
     RESULTS_BASE,
     f"run{run}",
     f"exps/{experiment_name}/opt_fitness_plot/all.svg",
 )
+
+PLOPT_FITNESS_Y = 7.0
+PLOPT_LEARNINGDELTA_Y = 5.5
 
 # settings for sample_representations.py
 SAMPLEREPR_OUT_CENTER = lambda experiment_name, run, t_dim, r_dim, i: path.join(
