@@ -23,7 +23,7 @@ class Evaluator:
 
     def __init__(self, headless: bool, num_simulators: int) -> None:
         self._runner = LocalRunner(headless=headless, num_simulators=num_simulators)
-        self._terrain = terrains.flat()
+        self._terrain = terrains.crater(size=(8.0, 8.0), ruggedness=0.1, curviness=1.5)
 
     def evaluate(
         self,
