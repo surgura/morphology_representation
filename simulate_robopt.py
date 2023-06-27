@@ -51,13 +51,20 @@ def load_body_model(
     run: int,
     t_dim: int,
     r_dim: int,
+    margin: int,
+    gain: int,
     grammar: tree_grammar.TreeGrammar,
 ) -> TreeGrammarAutoEncoder:
     model = TreeGrammarAutoEncoder(grammar, dim=t_dim, dim_vae=r_dim)
     model.load_state_dict(
         torch.load(
-            config.TRAIN_OUT(
-                experiment_name=experiment_name, run=run, t_dim=t_dim, r_dim=r_dim
+            config.TRAIN_DD_OUT(
+                experiment_name=experiment_name,
+                run=run,
+                t_dim=t_dim,
+                r_dim=r_dim,
+                margin=margin,
+                gain=gain,
             )
         )
     )
@@ -71,47 +78,7 @@ def load_robot_rtgae(
     t_dim_i: int,
     r_dim_i: int,
 ) -> ModularRobot:
-    t_dim = config.MODEL_T_DIMS[t_dim_i]
-    r_dim = config.MODEL_R_DIMS[r_dim_i]
-
-    grammar = make_body_rgt()
-    body_model = load_body_model(
-        experiment_name=experiment_name,
-        run=run,
-        t_dim=t_dim,
-        r_dim=r_dim,
-        grammar=grammar,
-    )
-
-    dbengine = open_database_sqlite(
-        config.OPTRTGAE_OUT(
-            experiment_name=experiment_name,
-            run=run,
-            optrun=optrun,
-            t_dim=t_dim,
-            r_dim=r_dim,
-        )
-    )
-    with Session(dbengine) as ses:
-        best_individual_last_gen = ses.scalar(
-            select(rmodel.Individual)
-            .join(rmodel.Population)
-            .join(rmodel.Generation)
-            .order_by(
-                rmodel.Generation.generation_index.desc(),
-                rmodel.Individual.fitness.desc(),
-            )
-            .limit(1)
-        )
-        assert best_individual_last_gen is not None
-
-        print(f"Fitness from database: {best_individual_last_gen.fitness}")
-        body = best_individual_last_gen.genotype.develop(body_model)
-        brain = make_brain(
-            robot_to_actor_cpg(body)[1],
-            best_individual_last_gen.brain_parameters.parameters,
-        )
-        return ModularRobot(body, brain)
+    raise NotImplementedError()
 
 
 def load_robot_cmaes(
@@ -120,9 +87,13 @@ def load_robot_cmaes(
     optrun: int,
     t_dim_i: int,
     r_dim_i: int,
+    margin_i: int,
+    gain_i: int,
 ) -> ModularRobot:
     t_dim = config.MODEL_T_DIMS[t_dim_i]
     r_dim = config.MODEL_R_DIMS[r_dim_i]
+    margin = config.TRAIN_DD_MARGINS[margin_i]
+    gain = config.TRAIN_DD_TRIPLET_FACTORS[gain_i]
 
     grammar = make_body_rgt()
     body_model = load_body_model(
@@ -130,6 +101,8 @@ def load_robot_cmaes(
         run=run,
         t_dim=t_dim,
         r_dim=r_dim,
+        margin=margin,
+        gain=gain,
         grammar=grammar,
     )
 
@@ -140,13 +113,15 @@ def load_robot_cmaes(
             optrun=optrun,
             t_dim=t_dim,
             r_dim=r_dim,
+            margin=margin,
+            gain=gain,
         )
     )
     with Session(dbengine) as ses:
         last_gen = ses.scalar(
             select(cmodel.Generation)
             .order_by(
-                rmodel.Generation.generation_index.desc(),
+                cmodel.Generation.generation_index.desc(),
             )
             .limit(1)
         )
@@ -203,6 +178,18 @@ def main() -> None:
         choices=range(len(config.MODEL_T_DIMS)),
         required=True,
     )
+    cmaes_parser.add_argument(
+        "--margin",
+        type=int,
+        choices=range(len(config.TRAIN_DD_MARGINS)),
+        required=True,
+    )
+    cmaes_parser.add_argument(
+        "--gain",
+        type=int,
+        choices=range(len(config.TRAIN_DD_TRIPLET_FACTORS)),
+        required=True,
+    )
     args = parser.parse_args()
 
     if args.opt == "cppn":
@@ -224,6 +211,8 @@ def main() -> None:
             optrun=args.optrun,
             r_dim_i=args.r_dim,
             t_dim_i=args.t_dim,
+            margin_i=args.margin,
+            gain_i=args.gain,
         )
     else:
         raise NotImplementedError()
