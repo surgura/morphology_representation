@@ -62,7 +62,6 @@ def cppn(
             ),
             columns=["performed_evaluations", "diversity"],
         )
-        print(df)
         dfs.append(df)
 
     df = pandas.concat(dfs)
