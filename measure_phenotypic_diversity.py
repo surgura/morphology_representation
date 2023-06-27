@@ -105,7 +105,6 @@ def cppn(
         generations = [[]]
         for row in rows:
             if row[0] >= len(generations):
-                print(row[0])
                 generations.append([])
             tree = body_to_tree(row[2].develop())
             generations[-1].append(tree_to_apted(tree))
