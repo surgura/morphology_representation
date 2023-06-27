@@ -3,7 +3,7 @@ import argparse
 import indices_range
 import config
 from rtgae.recursive_tree_grammar_auto_encoder import TreeGrammarAutoEncoder
-from robot_rgt import make_body_rgt
+from robot_rgt import make_body_rgt, body_to_tree
 import torch
 from evaluation_representation_set import EvaluationRepresentationSet
 import pickle
@@ -88,16 +88,16 @@ def cppn(
     with Session(dbengine) as ses:
         stmt = (
             select(
-                cmodel.Generation.generation_index,
-                cmodel.PopIndividual.population_index,
-                cmodel.PopBodyParams,
+                bmodel.Generation.generation_index,
+                bmodel.Individual.population_index,
+                bmodel.BodyGenotype,
             )
-            .join_from(cmodel.Generation, cmodel.SamplePop)
-            .join_from(cmodel.SamplePop, cmodel.PopIndividual)
-            .join_from(cmodel.PopIndividual, cmodel.PopBodyParams)
+            .join_from(bmodel.Generation, bmodel.Population)
+            .join_from(bmodel.Population, bmodel.Individual)
+            .join_from(bmodel.Individual, bmodel.BodyGenotype)
             .order_by(
-                cmodel.Generation.generation_index,
-                cmodel.PopIndividual.population_index,
+                bmodel.Generation.generation_index,
+                bmodel.Individual.population_index,
             )
         )
         rows = ses.execute(stmt)
@@ -106,13 +106,10 @@ def cppn(
         for row in rows:
             if row[0] > len(generations):
                 generations.append([])
-            params = row[2].body
-            tree = GraphAdjform(
-                *model.decode(
-                    torch.tensor(params), max_size=config.MODEL_MAX_MODULES_INCL_EMPTY
-                )[:2]
-            )
+            tree = body_to_tree(row[2].develop())
             generations[-1].append(tree_to_apted(tree))
+
+    generations = [gen[:6] for gen in generations]
 
     distance_matrices = measure_distance_matrix_parallel(generations, parallelism)
 

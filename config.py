@@ -317,6 +317,6 @@ PHENDIV_VECTOR_OUT = lambda experiment_name, run, t_dim, r_dim, margin, gain: pa
 PHENDIV_CPPN_OUT = lambda experiment_name, run, optrun: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"exps/{experiment_name}/evaluation/diversity/vector___optrun{optrun}.pickle",
+    f"exps/{experiment_name}/evaluation/diversity/cppn___optrun{optrun}.pickle",
 )
 PHENDIV_SEED = 32847239487
