@@ -320,3 +320,17 @@ PHENDIV_CPPN_OUT = lambda experiment_name, run, optrun: path.join(
     f"exps/{experiment_name}/evaluation/diversity/cppn___optrun{optrun}.pickle",
 )
 PHENDIV_SEED = 32847239487
+
+# settings for plot_phenotypic_diversity.py
+PLTPHENDIV_Y = [-2, 17]
+
+PLTPHENDIV_CMAES_OUT = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"exps/{experiment_name}/evaluation/diversity_plot/cmaes_t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}.svg",
+)
+PLTPHENDIV_CPPN_OUT = lambda experiment_name, run: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"exps/{experiment_name}/evaluation/diversity_plot/cppn.svg",
+)
