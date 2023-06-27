@@ -185,7 +185,7 @@ def together(
                     )
     cppn(experiment_name=excppn, run=run, ax=ax, color="teal")
 
-    ax.set_ylabel("Diversity")
+    ax.set_ylabel("Phenotypic diversity")
     ax.set_xlabel("Evaluations")
     ax.set_ylim(bottom=config.PLTPHENDIV_Y[0], top=config.PLTPHENDIV_Y[1])
     plt.legend(loc="upper right")
