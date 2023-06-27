@@ -79,7 +79,7 @@ def cppn(
     optrun: int,
     parallelism: int,
 ) -> None:
-    logging.info(f"Measuring phenotypic diversity for CMAES {run=} {optrun=}")
+    logging.info(f"Measuring phenotypic diversity for CPPN {run=} {optrun=}")
 
     dbengine = open_database_sqlite(
         config.OPTBENCH_OUT(experiment_name=experiment_name, run=run, optrun=optrun)
@@ -108,8 +108,6 @@ def cppn(
                 generations.append([])
             tree = body_to_tree(row[2].develop())
             generations[-1].append(tree_to_apted(tree))
-
-    generations = [gen[:6] for gen in generations]
 
     distance_matrices = measure_distance_matrix_parallel(generations, parallelism)
 
