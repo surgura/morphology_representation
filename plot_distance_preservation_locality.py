@@ -15,7 +15,7 @@ def plot_pairs(
     x = [pair[0] for pair in pairs]
     y = [pair[1] for pair in pairs]
     fig, ax = plt.subplots()
-    ax.scatter(x, y)
+    ax.scatter(x, y, color="teal")
     ax.set_xlabel(xname)
     ax.set_ylabel(yname)
     ax.set_ylim(bottom=config.PLTPREVLOC_Y_LIM[0], top=config.PLTPREVLOC_Y_LIM[1])
@@ -62,8 +62,8 @@ def main() -> None:
                                     margin=margin,
                                     gain=gain,
                                 ),
-                                "Representation distance",
-                                "Solution distance",
+                                "Genotypic distance",
+                                "Phenotypic distance",
                             )
 
                         with open(
@@ -88,8 +88,8 @@ def main() -> None:
                                     margin=margin,
                                     gain=gain,
                                 ),
-                                "Representation distance",
-                                "Solution distance",
+                                "Genotypic distance",
+                                "Phenotypic distance",
                             )
 
 

@@ -80,6 +80,11 @@ PLTTRAIN_OUT = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.joi
     f"run{run}",
     f"exps/{experiment_name}/trained_plot/t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}.svg",
 )
+PLTTRAIN_OUT_ALL = lambda experiment_name, run: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"exps/{experiment_name}/trained_plot/all.svg",
+)
 
 # settings for generate_evaluation_representation_set.py
 GENEVALREPR_SEED = 34592349873289
@@ -171,13 +176,13 @@ PLTPREVLOC_Y_LIM = [-1, 35.0]
 PLTPREVLOC_OUT_DPREV = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"exps/{experiment_name}/evaluation/plots/distance_preservation_scatter___t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}.png",
+    f"exps/{experiment_name}/evaluation/plots/distance_preservation_scatter___t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}.svg",
 )
 
 PLTPREVLOC_OUT_LOC = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"exps/{experiment_name}/evaluation/plots/locality_scatter___t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}.png",
+    f"exps/{experiment_name}/evaluation/plots/locality_scatter___t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}.svg",
 )
 
 # settings for select_representations.py
@@ -322,7 +327,7 @@ PHENDIV_CPPN_OUT = lambda experiment_name, run, optrun: path.join(
 PHENDIV_SEED = 32847239487
 
 # settings for plot_phenotypic_diversity.py
-PLTPHENDIV_Y = [-2, 17]
+PLTPHENDIV_Y = [-2, 20]
 
 PLTPHENDIV_CMAES_OUT = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.join(
     RESULTS_BASE,
@@ -333,4 +338,9 @@ PLTPHENDIV_CPPN_OUT = lambda experiment_name, run: path.join(
     RESULTS_BASE,
     f"run{run}",
     f"exps/{experiment_name}/evaluation/diversity_plot/cppn.svg",
+)
+PLTPHENDIV_TOGETHER_OUT = lambda experiment_name, run: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"exps/{experiment_name}/evaluation/diversity_plot/together.svg",
 )
