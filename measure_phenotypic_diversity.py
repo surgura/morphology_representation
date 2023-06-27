@@ -81,7 +81,49 @@ def cppn(
 ) -> None:
     logging.info(f"Measuring phenotypic diversity for CMAES {run=} {optrun=}")
 
-    raise NotImplementedError()
+    dbengine = open_database_sqlite(
+        config.OPTBENCH_OUT(experiment_name=experiment_name, run=run, optrun=optrun)
+    )
+    generations: List[List[apted.helpers.Tree]]  # generation -> index -> apted tree
+    with Session(dbengine) as ses:
+        stmt = (
+            select(
+                cmodel.Generation.generation_index,
+                cmodel.PopIndividual.population_index,
+                cmodel.PopBodyParams,
+            )
+            .join_from(cmodel.Generation, cmodel.SamplePop)
+            .join_from(cmodel.SamplePop, cmodel.PopIndividual)
+            .join_from(cmodel.PopIndividual, cmodel.PopBodyParams)
+            .order_by(
+                cmodel.Generation.generation_index,
+                cmodel.PopIndividual.population_index,
+            )
+        )
+        rows = ses.execute(stmt)
+
+        generations = [[]]
+        for row in rows:
+            if row[0] > len(generations):
+                generations.append([])
+            params = row[2].body
+            tree = GraphAdjform(
+                *model.decode(
+                    torch.tensor(params), max_size=config.MODEL_MAX_MODULES_INCL_EMPTY
+                )[:2]
+            )
+            generations[-1].append(tree_to_apted(tree))
+
+    distance_matrices = measure_distance_matrix_parallel(generations, parallelism)
+
+    out_file = config.PHENDIV_CPPN_OUT(
+        experiment_name=experiment_name,
+        run=run,
+        optrun=optrun,
+    )
+    pathlib.Path(out_file).parent.mkdir(parents=True, exist_ok=True)
+    with open(out_file, "wb") as f:
+        pickle.dump(distance_matrices, f)
 
 
 def cmaes(
@@ -173,7 +215,6 @@ def cmaes(
 def vector_sample(
     experiment_name: str,
     run: int,
-    optrun: int,
     t_dim: int,
     r_dim: int,
     margin: float,
@@ -181,7 +222,7 @@ def vector_sample(
     parallelism: int,
 ) -> None:
     logging.info(
-        f"Measuring phenotypic diversity for random vector samples {run=} {optrun=} {t_dim=} {r_dim=} {margin=} {gain=}"
+        f"Measuring phenotypic diversity for random vector samples {run=} {t_dim=} {r_dim=} {margin=} {gain=}"
     )
 
     grammar = make_body_rgt()
@@ -202,7 +243,7 @@ def vector_sample(
     rng_seed = (
         int(
             hashlib.sha256(
-                f"measure_phenotypic_diversity_vectors_seed{config.PHENDIV_SEED}_run{run}_t_dim{t_dim}_r_dim{r_dim}_optrun{optrun}_margin{margin}_gain{gain}".encode()
+                f"measure_phenotypic_diversity_vectors_seed{config.PHENDIV_SEED}_run{run}_t_dim{t_dim}_r_dim{r_dim}_margin{margin}_gain{gain}".encode()
             ).hexdigest(),
             16,
         )
@@ -231,7 +272,6 @@ def vector_sample(
     out_file = config.PHENDIV_VECTOR_OUT(
         experiment_name=experiment_name,
         run=run,
-        optrun=optrun,
         t_dim=t_dim,
         r_dim=r_dim,
         margin=margin,
@@ -261,18 +301,17 @@ def main() -> None:
                 for r_dim in config.MODEL_R_DIMS:
                     for margin in config.TRAIN_DD_MARGINS:
                         for gain in config.TRAIN_DD_TRIPLET_FACTORS:
+                            vector_sample(
+                                experiment_name=args.experiment_name,
+                                run=run,
+                                t_dim=t_dim,
+                                r_dim=r_dim,
+                                margin=margin,
+                                gain=gain,
+                                parallelism=args.parallelism,
+                            )
                             for optrun in range(config.ROBOPT_RUNS):
                                 cmaes(
-                                    experiment_name=args.experiment_name,
-                                    run=run,
-                                    optrun=optrun,
-                                    t_dim=t_dim,
-                                    r_dim=r_dim,
-                                    margin=margin,
-                                    gain=gain,
-                                    parallelism=args.parallelism,
-                                )
-                                vector_sample(
                                     experiment_name=args.experiment_name,
                                     run=run,
                                     optrun=optrun,
