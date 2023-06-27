@@ -302,3 +302,21 @@ SMPLMUT_OUT = lambda experiment_name, run, t_dim, r_dim, margin, gain, tag: path
     f"run{run}",
     f"exps/{experiment_name}/evaluation/samples/t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}/sample_{tag}.png",
 )
+
+# settings for measure_phenotypic_diversity.py
+PHENDIV_CMAES_OUT = lambda experiment_name, run, optrun, t_dim, r_dim, margin, gain: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"exps/{experiment_name}/evaluation/diversity/cmaes___t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}___optrun{optrun}.pickle",
+)
+PHENDIV_VECTOR_OUT = lambda experiment_name, run, optrun, t_dim, r_dim, margin, gain: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"exps/{experiment_name}/evaluation/diversity/vector___t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}___optrun{optrun}.pickle",
+)
+PHENDIV_CPPN_OUT = lambda experiment_name, run, optrun: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"exps/{experiment_name}/evaluation/diversity/vector___optrun{optrun}.pickle",
+)
+PHENDIV_SEED = 32847239487
