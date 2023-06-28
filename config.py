@@ -349,5 +349,12 @@ PLTPHENDIV_CPPN_OUT = lambda experiment_name, run, method: path.join(
 PLTPHENDIV_TOGETHER_OUT = lambda experiment_name, run, method: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"exps/{experiment_name}/evaluation/diversity_plot/together___{method}.png",
+    f"exps/{experiment_name}/evaluation/diversity_plot/together___{method}.svg",
+)
+
+# settings for plot_boxplot_fitness.py
+BXPLT_OUT = lambda experiment_name, run: path.join(
+    RESULTS_BASE,
+    f"run{run}",
+    f"exps/{experiment_name}/evaluation/fitness_boxplot/fitness_boxplt.svg",
 )
