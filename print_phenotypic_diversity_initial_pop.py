@@ -26,6 +26,7 @@ import numpy as np
 import numpy.typing as npt
 import apted.helpers
 import matplotlib.pyplot as plt
+from plot_phenotypic_diversity import calc_div
 
 
 def plot_with_error_bars(df, y_col, color, ax, label):
@@ -45,12 +46,12 @@ def cppn(experiment_name: str, run: int, ax=None, color="teal") -> None:
             experiment_name=experiment_name,
             run=run,
             optrun=optrun,
+            method=config.PHENDIV_METHOD,
         )
         with open(in_file, "rb") as f:
             distance_matrices: List[npt.NDArray[np.float64]] = pickle.load(f)
 
-        print(distance_matrices[0])
-        diversities = [float(np.mean(matrix)) for matrix in distance_matrices]
+        diversities = calc_div(distance_matrices)
 
         print(f"CPPN {run=} {optrun=}")
         print(f"{diversities[0]}")
@@ -82,11 +83,12 @@ def cmaes(
             r_dim=r_dim,
             margin=margin,
             gain=gain,
+            method=config.PHENDIV_METHOD,
         )
         with open(in_file, "rb") as f:
             distance_matrices: List[npt.NDArray[np.float64]] = pickle.load(f)
 
-        diversities = [float(np.mean(matrix)) for matrix in distance_matrices]
+        diversities = calc_div(distance_matrices)
 
         print(f"CMAES {run=} {optrun=} {t_dim=} {r_dim=} {margin=} {gain=}")
         print(f"{diversities[0]}")
@@ -114,12 +116,12 @@ def vector_sample(
         r_dim=r_dim,
         margin=margin,
         gain=gain,
+        method=config.PHENDIV_METHOD,
     )
     with open(in_file, "rb") as f:
         distance_matrices: List[npt.NDArray[np.float64]] = pickle.load(f)
 
-    print(distance_matrices[0])
-    diversities = [float(np.mean(matrix)) for matrix in distance_matrices]
+    diversities = calc_div(distance_matrices)
 
     print(f"Random vector sample {run=} {t_dim=} {r_dim=} {margin=} {gain=}")
     print(f"{diversities[0]}")

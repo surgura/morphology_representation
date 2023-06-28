@@ -37,6 +37,27 @@ def plot_with_error_bars(df, y_col, color, ax, label):
     ax.fill_between(means.index, means - stds, means + stds, color=color, alpha=0.2)
 
 
+def calc_div_mat(matrix) -> float:
+    # float(np.sum(matrix**2) / (matrix.shape[0] * (matrix.shape[0] - 1)))
+
+    total = 0.0
+    for x in range(matrix.shape[0]):
+        for y in range(matrix.shape[0]):
+            if x == y:
+                continue
+
+            if matrix[x][y] == 0.0:
+                # if they are the same, just act like they differ 1 so the measure still makes sense
+                total += 1.0 / (1**2)
+            else:
+                total += 1.0 / (matrix[x][y] ** 2)
+    return total / (matrix.shape[0] * (matrix.shape[0] - 1))
+
+
+def calc_div(distance_matrices) -> List[float]:
+    return [calc_div_mat(mat) for mat in distance_matrices]
+
+
 def cppn(experiment_name: str, run: int, ax=None, color="teal") -> None:
     dfs = []
     for optrun in range(config.ROBOPT_RUNS):
@@ -44,11 +65,12 @@ def cppn(experiment_name: str, run: int, ax=None, color="teal") -> None:
             experiment_name=experiment_name,
             run=run,
             optrun=optrun,
+            method=config.PHENDIV_METHOD,
         )
         with open(in_file, "rb") as f:
             distance_matrices: List[npt.NDArray[np.float64]] = pickle.load(f)
 
-        diversities = [float(np.mean(matrix)) for matrix in distance_matrices]
+        diversities = calc_div(distance_matrices)
         df = pandas.DataFrame.from_records(
             zip(
                 [
@@ -76,8 +98,7 @@ def cppn(experiment_name: str, run: int, ax=None, color="teal") -> None:
         ax.set_ylim(bottom=config.PLTPHENDIV_Y[0], top=config.PLTPHENDIV_Y[1])
 
         out_dir = config.PLTPHENDIV_CPPN_OUT(
-            experiment_name=experiment_name,
-            run=run,
+            experiment_name=experiment_name, run=run, method=config.PHENDIV_METHOD
         )
         pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
         plt.savefig(out_dir, bbox_inches="tight")
@@ -104,11 +125,12 @@ def cmaes(
             r_dim=r_dim,
             margin=margin,
             gain=gain,
+            method=config.PHENDIV_METHOD,
         )
         with open(in_file, "rb") as f:
             distance_matrices: List[npt.NDArray[np.float64]] = pickle.load(f)
 
-        diversities = [float(np.mean(matrix)) for matrix in distance_matrices]
+        diversities = calc_div(distance_matrices)
 
         dbengine = open_database_sqlite(
             config.OPTCMAES_OUT(
@@ -154,6 +176,7 @@ def cmaes(
             r_dim=r_dim,
             margin=margin,
             gain=gain,
+            method=config.PHENDIV_METHOD,
         )
         pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
         plt.savefig(out_dir, bbox_inches="tight")
@@ -187,10 +210,13 @@ def together(
 
     ax.set_ylabel("Phenotypic diversity")
     ax.set_xlabel("Evaluations")
-    ax.set_ylim(bottom=config.PLTPHENDIV_Y[0], top=config.PLTPHENDIV_Y[1])
+    # ax.set_ylim(bottom=config.PLTPHENDIV_Y[0], top=config.PLTPHENDIV_Y[1])
+    ax.set_yscale("log")
     plt.legend(loc="upper right")
 
-    out_dir = config.PLTPHENDIV_TOGETHER_OUT(experiment_name=experiment_name, run=run)
+    out_dir = config.PLTPHENDIV_TOGETHER_OUT(
+        experiment_name=experiment_name, run=run, method=config.PHENDIV_METHOD
+    )
     pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
     plt.savefig(out_dir, bbox_inches="tight")
     plt.close()

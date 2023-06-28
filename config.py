@@ -309,38 +309,45 @@ SMPLMUT_OUT = lambda experiment_name, run, t_dim, r_dim, margin, gain, tag: path
 )
 
 # settings for measure_phenotypic_diversity.py
-PHENDIV_CMAES_OUT = lambda experiment_name, run, optrun, t_dim, r_dim, margin, gain: path.join(
+PHENDIV_CMAES_OUT = lambda experiment_name, run, optrun, t_dim, r_dim, margin, gain, method: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"exps/{experiment_name}/evaluation/diversity/cmaes___t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}___optrun{optrun}.pickle",
+    f"exps/{experiment_name}/evaluation/diversity/cmaes___{method}___t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}___optrun{optrun}.pickle",
 )
-PHENDIV_VECTOR_OUT = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.join(
+PHENDIV_VECTOR_OUT = lambda experiment_name, run, t_dim, r_dim, margin, gain, method: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"exps/{experiment_name}/evaluation/diversity/vector___t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}.pickle",
+    f"exps/{experiment_name}/evaluation/diversity/vector___{method}___t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}.pickle",
 )
-PHENDIV_CPPN_OUT = lambda experiment_name, run, optrun: path.join(
+PHENDIV_CPPN_OUT = lambda experiment_name, run, optrun, method: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"exps/{experiment_name}/evaluation/diversity/cppn___optrun{optrun}.pickle",
+    f"exps/{experiment_name}/evaluation/diversity/cppn___{method}___optrun{optrun}.pickle",
 )
+PHENDIV_METHOD = "apted"
+# PHENDIV_METHOD = "proportion"
+# PHENDIV_METHOD = "limbs"
+# PHENDIV_METHOD = "branching"
+# PHENDIV_METHOD = "nummodules"
+# PHENDIV_METHOD = "bbvolume"
+# PHENDIV_METHOD = "coverage"
 PHENDIV_SEED = 32847239487
 
 # settings for plot_phenotypic_diversity.py
 PLTPHENDIV_Y = [-2, 20]
 
-PLTPHENDIV_CMAES_OUT = lambda experiment_name, run, t_dim, r_dim, margin, gain: path.join(
+PLTPHENDIV_CMAES_OUT = lambda experiment_name, run, t_dim, r_dim, margin, gain, method: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"exps/{experiment_name}/evaluation/diversity_plot/cmaes_t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}.svg",
+    f"exps/{experiment_name}/evaluation/diversity_plot/cmaes___{method}_t_dim{t_dim}___r_dim{r_dim}___margin{margin}___gain{gain}.svg",
 )
-PLTPHENDIV_CPPN_OUT = lambda experiment_name, run: path.join(
+PLTPHENDIV_CPPN_OUT = lambda experiment_name, run, method: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"exps/{experiment_name}/evaluation/diversity_plot/cppn.svg",
+    f"exps/{experiment_name}/evaluation/diversity_plot/cppn___{method}.svg",
 )
-PLTPHENDIV_TOGETHER_OUT = lambda experiment_name, run: path.join(
+PLTPHENDIV_TOGETHER_OUT = lambda experiment_name, run, method: path.join(
     RESULTS_BASE,
     f"run{run}",
-    f"exps/{experiment_name}/evaluation/diversity_plot/together.svg",
+    f"exps/{experiment_name}/evaluation/diversity_plot/together___{method}.png",
 )

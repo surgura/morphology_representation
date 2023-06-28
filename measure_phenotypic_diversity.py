@@ -25,32 +25,81 @@ import joblib
 import numpy as np
 import numpy.typing as npt
 import apted.helpers
+from revolve2.core.modular_robot import MorphologicalMeasures
+from robot_rgt import tree_to_body
 
 
 def measure_distance_matrix(
     generation: List[apted.helpers.Tree],
+    generation_measures: List[MorphologicalMeasures],
 ) -> npt.NDArray[np.float64]:
     n = len(generation)
     distance_matrix = np.zeros((n, n))
 
-    for i in range(n):
-        for j in range(n):
-            distance_matrix[i, j] = apted_tree_edit_distance(
-                generation[i], generation[j]
-            )
+    if config.PHENDIV_METHOD == "apted":
+        for i in range(n):
+            for j in range(n):
+                distance_matrix[i, j] = apted_tree_edit_distance(
+                    generation[i], generation[j]
+                )
+    elif config.PHENDIV_METHOD == "proportion":
+        for i in range(n):
+            for j in range(n):
+                distance_matrix[i, j] = abs(
+                    generation_measures[i].proportion_2d
+                    - generation_measures[j].proportion_2d
+                )
+    elif config.PHENDIV_METHOD == "limbs":
+        for i in range(n):
+            for j in range(n):
+                distance_matrix[i, j] = abs(
+                    generation_measures[i].limbs - generation_measures[j].limbs
+                )
+    elif config.PHENDIV_METHOD == "branching":
+        for i in range(n):
+            for j in range(n):
+                distance_matrix[i, j] = abs(
+                    generation_measures[i].branching - generation_measures[j].branching
+                )
+    elif config.PHENDIV_METHOD == "nummodules":
+        for i in range(n):
+            for j in range(n):
+                distance_matrix[i, j] = abs(
+                    generation_measures[i].branching
+                    - generation_measures[j].num_modules
+                )
+    elif config.PHENDIV_METHOD == "bbvolume":
+        for i in range(n):
+            for j in range(n):
+                distance_matrix[i, j] = abs(
+                    generation_measures[i].branching
+                    - generation_measures[j].bounding_box_volume
+                )
+    elif config.PHENDIV_METHOD == "coverage":
+        for i in range(n):
+            for j in range(n):
+                distance_matrix[i, j] = abs(
+                    generation_measures[i].branching - generation_measures[j].coverage
+                )
+    else:
+        raise NotImplementedError()
+
     return distance_matrix
 
 
 def measure_distance_matrix_multiple(
     generations: List[List[apted.helpers.Tree]],
+    generations_measures: List[List[MorphologicalMeasures]],
 ) -> List[npt.NDArray[np.float64]]:
     return [
-        (print(i), measure_distance_matrix(gen))[1] for i, gen in enumerate(generations)
+        (print(i), measure_distance_matrix(gen, mes))[1]
+        for i, (gen, mes) in enumerate(zip(generations, generations_measures))
     ]
 
 
 def measure_distance_matrix_parallel(
     generations: List[List[apted.helpers.Tree]],
+    generations_measures: List[List[MorphologicalMeasures]],
     parallelism: int,
 ) -> List[npt.NDArray[np.float64]]:
     slices = [
@@ -65,7 +114,8 @@ def measure_distance_matrix_parallel(
     results: List[List[float]] = joblib.Parallel(n_jobs=parallelism)(
         [
             joblib.delayed(measure_distance_matrix_multiple)(
-                generations[slice[0] : slice[1]]
+                generations[slice[0] : slice[1]],
+                generations_measures[slice[0] : slice[1]],
             )
             for slice in slices
         ]
@@ -107,14 +157,21 @@ def cppn(
             if row[0] >= len(generations):
                 generations.append([])
             tree = body_to_tree(row[2].develop())
-            generations[-1].append(tree_to_apted(tree))
+            generations[-1].append(tree)
 
-    distance_matrices = measure_distance_matrix_parallel(generations, parallelism)
+    apteds = [[tree_to_apted(tree) for tree in gen] for gen in generations]
+    bodies = [[tree_to_body(tree) for tree in gen] for gen in generations]
+    morph_measures = [[MorphologicalMeasures(body) for body in gen] for gen in bodies]
+
+    distance_matrices = measure_distance_matrix_parallel(
+        apteds, morph_measures, parallelism
+    )
 
     out_file = config.PHENDIV_CPPN_OUT(
         experiment_name=experiment_name,
         run=run,
         optrun=optrun,
+        method=config.PHENDIV_METHOD,
     )
     pathlib.Path(out_file).parent.mkdir(parents=True, exist_ok=True)
     with open(out_file, "wb") as f:
@@ -161,7 +218,7 @@ def cmaes(
             gain=gain,
         )
     )
-    generations: List[List[apted.helpers.Tree]]  # generation -> index -> apted tree
+    generations: List[List[GraphAdjform]]  # generation -> index -> apted tree
     with Session(dbengine) as ses:
         stmt = (
             select(
@@ -189,9 +246,15 @@ def cmaes(
                     torch.tensor(params), max_size=config.MODEL_MAX_MODULES_INCL_EMPTY
                 )[:2]
             )
-            generations[-1].append(tree_to_apted(tree))
+            generations[-1].append(tree)
 
-    distance_matrices = measure_distance_matrix_parallel(generations, parallelism)
+    apteds = [[tree_to_apted(tree) for tree in gen] for gen in generations]
+    bodies = [[tree_to_body(tree) for tree in gen] for gen in generations]
+    morph_measures = [[MorphologicalMeasures(body) for body in gen] for gen in bodies]
+
+    distance_matrices = measure_distance_matrix_parallel(
+        apteds, morph_measures, parallelism
+    )
 
     out_file = config.PHENDIV_CMAES_OUT(
         experiment_name=experiment_name,
@@ -201,6 +264,7 @@ def cmaes(
         r_dim=r_dim,
         margin=margin,
         gain=gain,
+        method=config.PHENDIV_METHOD,
     )
     pathlib.Path(out_file).parent.mkdir(parents=True, exist_ok=True)
     with open(out_file, "wb") as f:
@@ -262,7 +326,12 @@ def vector_sample(
     ]
     apteds = [tree_to_apted(tree) for tree in trees]
 
-    distance_matrices = measure_distance_matrix_parallel([apteds], parallelism)
+    bodies = [[tree_to_body(tree) for tree in gen] for gen in [trees]]
+    morph_measures = [[MorphologicalMeasures(body) for body in gen] for gen in bodies]
+
+    distance_matrices = measure_distance_matrix_parallel(
+        [apteds], morph_measures, parallelism
+    )
 
     out_file = config.PHENDIV_VECTOR_OUT(
         experiment_name=experiment_name,
@@ -271,6 +340,7 @@ def vector_sample(
         r_dim=r_dim,
         margin=margin,
         gain=gain,
+        method=config.PHENDIV_METHOD,
     )
     pathlib.Path(out_file).parent.mkdir(parents=True, exist_ok=True)
     with open(out_file, "wb") as f:
