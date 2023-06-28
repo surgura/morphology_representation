@@ -84,7 +84,7 @@ def main() -> None:
             whiskerprops={"color": "teal", "linewidth": 1.1},
             capprops={"color": "teal", "linewidth": 1.1},
             medianprops={"color": "sandybrown", "linewidth": 1.1},
-            widths=0.4,
+            widths=0.5,
             vert=False,
         )
         ax.set_yticklabels(["CPPN", "Vector"])
@@ -95,9 +95,9 @@ def main() -> None:
             run=run,
         )
         pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
-        # ax.set_aspect(0.5)
+        ax.set_aspect(0.7)
         plt.savefig(out_dir, bbox_inches="tight")
-        # plt.show()
+        plt.show()
         plt.close()
 
 
