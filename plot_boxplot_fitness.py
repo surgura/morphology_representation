@@ -84,18 +84,20 @@ def main() -> None:
             whiskerprops={"color": "teal", "linewidth": 1.1},
             capprops={"color": "teal", "linewidth": 1.1},
             medianprops={"color": "sandybrown", "linewidth": 1.1},
-            widths=0.5,
+            widths=0.4,
+            vert=False,
         )
-        ax.set_xticklabels(["CPPN", "Vector"])
-        plt.ylabel("Fitness")
+        ax.set_yticklabels(["CPPN", "Vector"])
+        plt.xlabel("Fitness")
 
         out_dir = config.BXPLT_OUT(
             experiment_name=args.experiment_name,
             run=run,
         )
         pathlib.Path(out_dir).parent.mkdir(parents=True, exist_ok=True)
-        ax.set_aspect(0.5)
+        # ax.set_aspect(0.5)
         plt.savefig(out_dir, bbox_inches="tight")
+        # plt.show()
         plt.close()
 
 
