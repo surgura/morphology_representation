@@ -48,6 +48,66 @@ def load_robot_cppn(experiment_name: str, run: int, optrun: int) -> ModularRobot
         return ModularRobot(body, brain)
 
 
+def load_robot_rtgae(
+    experiment_name: str,
+    run: int,
+    optrun: int,
+    t_dim_i: int,
+    r_dim_i: int,
+    margin_i: int,
+    gain_i: int,
+) -> ModularRobot:
+    t_dim = config.MODEL_T_DIMS[t_dim_i]
+    r_dim = config.MODEL_R_DIMS[r_dim_i]
+    margin = config.TRAIN_DD_MARGINS[margin_i]
+    gain = config.TRAIN_DD_TRIPLET_FACTORS[gain_i]
+
+    grammar = make_body_rgt()
+    body_model = load_body_model(
+        experiment_name=experiment_name,
+        run=run,
+        t_dim=t_dim,
+        r_dim=r_dim,
+        margin=margin,
+        gain=gain,
+        grammar=grammar,
+    )
+
+    dbengine = open_database_sqlite(
+        config.OPTRTGAE_OUT(
+            experiment_name=experiment_name,
+            run=run,
+            optrun=optrun,
+            t_dim=t_dim,
+            r_dim=r_dim,
+            margin=margin,
+            gain=gain,
+        )
+    )
+    with Session(dbengine) as ses:
+        best_individual_last_gen = ses.scalar(
+            select(rmodel.Individual)
+            .join(rmodel.Population)
+            .join(rmodel.Generation)
+            .order_by(
+                rmodel.Generation.generation_index.desc(),
+                rmodel.Individual.fitness.desc(),
+            )
+            .where(rmodel.Generation.generation_index == 0)
+            .offset(0)
+            .limit(1)
+        )
+        assert best_individual_last_gen is not None
+
+        print(f"Fitness from database: {best_individual_last_gen.fitness}")
+        body = representation_to_body(best_individual_last_gen.genotype, body_model)
+        brain = make_brain(
+            robot_to_actor_cpg(body)[1],
+            best_individual_last_gen.brain_parameters,
+        )
+        return ModularRobot(body, brain)
+
+
 def load_body_model(
     experiment_name: str,
     run: int,
@@ -71,16 +131,6 @@ def load_body_model(
         )
     )
     return model
-
-
-def load_robot_rtgae(
-    experiment_name: str,
-    run: int,
-    optrun: int,
-    t_dim_i: int,
-    r_dim_i: int,
-) -> ModularRobot:
-    raise NotImplementedError()
 
 
 def load_robot_cmaes(
@@ -180,6 +230,18 @@ def main() -> None:
         choices=range(len(config.MODEL_T_DIMS)),
         required=True,
     )
+    rtgae_parser.add_argument(
+        "--margin",
+        type=int,
+        choices=range(len(config.TRAIN_DD_MARGINS)),
+        required=True,
+    )
+    rtgae_parser.add_argument(
+        "--gain",
+        type=int,
+        choices=range(len(config.TRAIN_DD_TRIPLET_FACTORS)),
+        required=True,
+    )
     cmaes_parser = subparsers.add_parser("cmaes")
     cmaes_parser.add_argument(
         "--r_dim",
@@ -218,6 +280,8 @@ def main() -> None:
             optrun=args.optrun,
             r_dim_i=args.r_dim,
             t_dim_i=args.t_dim,
+            margin_i=args.margin,
+            gain_i=args.gain,
         )
     elif args.opt == "cmaes":
         robot = load_robot_cmaes(
