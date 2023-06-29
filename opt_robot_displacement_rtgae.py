@@ -95,13 +95,20 @@ def load_body_model(
     run: int,
     t_dim: int,
     r_dim: int,
+    margin: int,
+    gain: int,
     grammar: tree_grammar.TreeGrammar,
 ) -> TreeGrammarAutoEncoder:
     model = TreeGrammarAutoEncoder(grammar, dim=t_dim, dim_vae=r_dim)
     model.load_state_dict(
         torch.load(
-            config.TRAIN_OUT(
-                experiment_name=experiment_name, run=run, t_dim=t_dim, r_dim=r_dim
+            config.TRAIN_DD_OUT(
+                experiment_name=experiment_name,
+                run=run,
+                t_dim=t_dim,
+                r_dim=r_dim,
+                margin=margin,
+                gain=gain,
             )
         )
     )
@@ -113,11 +120,15 @@ def do_run(
     run: int,
     t_dim_i: int,
     r_dim_i: int,
+    margin_i: int,
+    gain_i: int,
     optrun: int,
     parallelism: int,
 ) -> None:
     t_dim = config.MODEL_T_DIMS[t_dim_i]
     r_dim = config.MODEL_R_DIMS[r_dim_i]
+    margin = config.TRAIN_DD_MARGINS[margin_i]
+    gain = config.TRAIN_DD_TRIPLET_FACTORS[gain_i]
 
     rng_seed = int(
         hashlib.sha256(
@@ -135,6 +146,8 @@ def do_run(
         run=run,
         t_dim=t_dim,
         r_dim=r_dim,
+        margin=margin,
+        gain=gain,
         grammar=grammar,
     )
 
@@ -147,6 +160,8 @@ def do_run(
             optrun=optrun,
             t_dim=t_dim,
             r_dim=r_dim,
+            margin=margin,
+            gain=gain,
         ),
         create=True,
     )
@@ -293,6 +308,16 @@ def main() -> None:
         type=indices_range.indices_type(range(config.ROBOPT_RUNS)),
         required=True,
     )
+    parser.add_argument(
+        "--margins",
+        type=indices_range.indices_type(range(len(config.TRAIN_DD_MARGINS))),
+        required=True,
+    )
+    parser.add_argument(
+        "--gains",
+        type=indices_range.indices_type(range(len(config.TRAIN_DD_TRIPLET_FACTORS))),
+        required=True,
+    )
     parser.add_argument("-p", "--parallelism", type=int, required=True)
     args = parser.parse_args()
 
@@ -300,14 +325,18 @@ def main() -> None:
         for optrun in args.optruns:
             for t_dim_i in args.t_dims:
                 for r_dim_i in args.r_dims:
-                    do_run(
-                        experiment_name=args.experiment_name,
-                        run=run,
-                        t_dim_i=t_dim_i,
-                        r_dim_i=r_dim_i,
-                        optrun=optrun,
-                        parallelism=args.parallelism,
-                    )
+                    for margin_i in args.margins:
+                        for gain_i in args.gains:
+                            do_run(
+                                experiment_name=args.experiment_name,
+                                run=run,
+                                t_dim_i=t_dim_i,
+                                r_dim_i=r_dim_i,
+                                margin_i=margin_i,
+                                gain_i=gain_i,
+                                optrun=optrun,
+                                parallelism=args.parallelism,
+                            )
 
 
 if __name__ == "__main__":

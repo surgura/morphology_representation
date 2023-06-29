@@ -133,7 +133,7 @@ def main() -> None:
                     #     va="center",
                     #     ha="left",
                     # )
-        plt.ylabel("Training loss (logarithmic)")
+        plt.ylabel("Combined losses (logarithmic)")
         plt.xlabel("Epoch")
         plt.yscale("log")
         plt.legend(loc="upper right")
